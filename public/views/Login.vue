@@ -20,6 +20,12 @@ export default {
 			address: '',
 		}
 	},
+	mounted() {
+		const address = localStorage.getItem('address');
+		if (address) {
+			this.$router.push('/');
+		}
+	},
 	methods: {
 		async login() {
 			const addresses = await ethereum.enable();
