@@ -38,6 +38,9 @@ export default {
 		},
 		formatAddress() {
 			const address = localStorage.getItem('address');
+			if (!address) {
+				return '';
+			}
 			const ellipsizedAddress = `${address.substr(0, 6)}…${address.substr(38)}`;
 			return ellipsizedAddress;
 		}
