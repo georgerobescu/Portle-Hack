@@ -3,12 +3,14 @@ import VueRouter from 'vue-router';
 
 import App from './App.vue';
 
-import Main from './views/Main.vue';
+import Login from './views/Login.vue';
+import Portfolio from './views/Portfolio.vue';
 
 Vue.use(VueRouter);
 
 const routes = [
-	{ path: '/', component: Main }
+	{ path: '/login', component: Login },
+	{ path: '/', component: Portfolio },
 ];
 
 const router = new VueRouter({

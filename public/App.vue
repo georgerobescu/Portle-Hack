@@ -1,22 +1,49 @@
 <template>
-	<div id="app">
-		<div id="left">
-		</div>
-		<div id="center">
-			<div class="nav-bar">
-				<div>
-					<div class="nav-option">
-						<router-link to="/">Main</router-link>
-					</div>
-				</div>
+	<div>
+		<header v-if="showNavigation()">
+			<div style="display: flex; align-items: center;">
+				<img src="../assets/logo.svg" height="32px">
+				<h1 id="title" style="margin-left: 0.5em; cursor: default;">Portle</h1>
 			</div>
-			<br>
-			<router-view/>
-		</div>
-		<div id="right">
-		</div>
+			<div style="display: flex; align-items: center;">
+				<span>{{ formatAddress() }}</span>
+				<button @click="logout()" style="margin-left: 16px">Logout</button>
+			</div>
+		</header>
+		<main>
+			<aside></aside>
+			<section>
+				<router-view/>
+			</section>
+			<aside></aside>
+		</main>
+		<footer v-if="showNavigation()"></footer>
 	</div>
 </template>
+
+<script>
+export default {
+	methods: {
+		showNavigation() {
+			const path = this.$route.path;
+			if (path == '/login') {
+				return false;
+			}
+			return true;
+		},
+		logout() {
+			localStorage.removeItem('address');
+			localStorage.removeItem('auth');
+			this.$router.push('/login');
+		},
+		formatAddress() {
+			const address = localStorage.getItem('address');
+			const ellipsizedAddress = `${address.substr(0, 6)}…${address.substr(38)}`;
+			return ellipsizedAddress;
+		}
+	}
+}
+</script>
 
 <style>
 @import url('https://fonts.googleapis.com/css?family=Source+Code+Pro|Source+Sans+Pro&display=swap');
