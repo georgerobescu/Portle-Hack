@@ -140,6 +140,7 @@ input {
 
 input.address {
 	width: 480px;
+	text-transform: lowercase;
 }
 
 input.amount {
