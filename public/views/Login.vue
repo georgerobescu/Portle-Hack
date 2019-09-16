@@ -3,7 +3,7 @@
 		<h1 id="title">Portle</h1>
 		<div>
 			<span class="input-group">
-				<input id="address" class="address" placeholder="Enter address" v-model="address">
+				<input id="address" class="address" placeholder="Enter address" v-model="address" v-bind:class="{ invalid: !isAddressValid() }">
 				<span id="watch" @click="watch()">Watch</span>
 			</span>
 		</div>
@@ -34,12 +34,12 @@ export default {
 			localStorage.setItem('auth', false);
 			this.$router.push('/');
 		},
-		async isAddressValid(address) {
-			if (address.length == 0) {
+		isAddressValid() {
+			if (this.address.length == 0) {
 				return true;
 			}
 			const addressRegex = /0x[0-9A-Fa-f]{40}/g;
-			return addressRegex.test(address);
+			return addressRegex.test(this.address);
 		},
 	}
 }
