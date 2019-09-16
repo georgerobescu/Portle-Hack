@@ -4,7 +4,7 @@
 		<div>
 			<span class="input-group">
 				<input id="address" class="address" placeholder="Enter address" v-model="address" v-bind:class="{ invalid: !isAddressValid() }">
-				<span id="watch" @click="watch()">Watch</span>
+				<span id="watch" @click="watch()" v-bind:class="{ disabled: isWatchButtonDisabled() }">Watch</span>
 			</span>
 		</div>
 		<div id="divider">or</div>
@@ -41,6 +41,12 @@ export default {
 			const addressRegex = /0x[0-9A-Fa-f]{40}/g;
 			return addressRegex.test(this.address);
 		},
+		isWatchButtonDisabled() {
+			if (this.address.length == 0) {
+				return true;
+			}
+			return !this.isAddressValid();
+		},
 	}
 }
 </script>
@@ -76,6 +82,10 @@ button#main {
 	padding: 0.5em 1.25em 0.5em 1.25em;
 	border-left: 1px solid #f2f2f2;
 	cursor: pointer;
+}
+
+#watch.disabled {
+	pointer-events: none;
 }
 
 #watch:hover {
