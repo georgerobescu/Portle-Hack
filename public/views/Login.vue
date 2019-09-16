@@ -28,7 +28,7 @@ export default {
 			localStorage.setItem('auth', true);
 			this.$router.push('/');
 		},
-		async watch() {
+		watch() {
 			const address = this.address;
 			localStorage.setItem('address', address);
 			localStorage.setItem('auth', false);
