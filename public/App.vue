@@ -111,7 +111,7 @@ input {
 }
 
 input.address {
-	width: 500px;
+	width: 480px;
 }
 
 input.amount {
