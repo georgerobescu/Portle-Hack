@@ -33,7 +33,7 @@ header {
 	padding: 0px 16px 0px 16px;
 	display: flex;
 	justify-content: space-between;
-	border-bottom: 1px solid #282821;
+	border-bottom: 1px solid #d3d3d3;
 }
 
 footer {
@@ -65,7 +65,7 @@ button {
 	background: none;
 	cursor: pointer;
 	border: none;
-	background: #ecca80;
+	background: #eedfbd;
 	color: #333333;
 	border-radius: 4px;
 }
@@ -83,7 +83,7 @@ button.big {
 }
 
 button:hover {
-	background: #efb22d;
+	background: #dbbb74;
 	box-shadow: rgba(0, 0, 0, 0.2) 0px 2px 4px;
 }
 
@@ -92,7 +92,7 @@ button.primary:hover {
 }
 
 button:active {
-	background: #ecaa1a;
+	background: #dbbb74;
 }
 
 button.primary:active {
@@ -252,10 +252,10 @@ input.invalid {
 }
 
 .badge-info {
-	background: #ece6d9;
+	background: #eedfbd;
 }
 
 .badge-danger {
-	background: #ece6d9;
+	background: #eedfbd;
 }
 </style>
