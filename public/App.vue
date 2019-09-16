@@ -135,6 +135,7 @@ input {
 	height: 28px;
 	border: none;
 	font-size: 1em;
+	color: #282821;
 }
 
 input.address {
