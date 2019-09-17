@@ -40,7 +40,7 @@ export default {
 	},
 	methods: {
 		async loadBalances() {
-			const url = `http://api.ethplorer.io/getAddressInfo/${this.address}?apiKey=freekey`;
+			const url = `https://api.ethplorer.io/getAddressInfo/${this.address}?apiKey=freekey`;
 			const response = await fetch(url);
 			const balanceResponse = await response.json();
 			// ETH
