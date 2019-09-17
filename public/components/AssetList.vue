@@ -1,11 +1,11 @@
 <template>
 	<div id="list">
-		<div class="card" v-for="(token, ticker) in tokens">
-			<div class="line line-amount">{{ formatBalance(getBalance(ticker)) }} {{ ticker }}</div>
-			<div class="line line-platform">{{ token }}</div>
+		<div class="card" v-for="asset in assets">
+			<div class="line line-amount">{{ formatBalance(asset.balance) }} {{ asset.ticker }}</div>
+			<div class="line line-platform">{{ asset.title }}</div>
 			<div class="line line-balance line-sparse">
-				<div>{{ formatMoney(prices[ticker]) }}</div>
-				<div>{{ formatMoney(getWorth(ticker))}}</div>
+				<div>{{ formatMoney(asset.price) }}</div>
+				<div>{{ formatMoney(asset.value)}}</div>
 			</div>
 		</div>
 	</div>
@@ -26,7 +26,7 @@ export default {
 			const shortBalance = balanceNumber.div(decimalNumber);
 			return shortBalance;
 		},
-		getWorth(ticker) {
+		getValue(ticker) {
 			const price = this.prices[ticker];
 			const priceNumber = new BigNumber(price);
 			const balance = this.getBalance(ticker);
@@ -39,6 +39,22 @@ export default {
 		formatMoney(price) {
 			return `$${price.toFixed(2)}`;
 		},
+	},
+	computed: {
+		assets() {
+			const assets = [];
+			for (const ticker in this.tokens) {
+				const asset = {
+					ticker,
+					title: this.tokens[ticker],
+					balance: new BigNumber(this.getBalance(ticker)),
+					price: new BigNumber(this.prices[ticker]),
+					value: new BigNumber(this.getValue(ticker)),
+				};
+				assets.push(asset);
+			}
+			return assets;
+		}
 	}
 }
 </script>
