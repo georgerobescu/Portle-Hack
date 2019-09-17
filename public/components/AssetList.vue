@@ -54,9 +54,9 @@ export default {
 				assets.push(asset);
 			}
 			assets.sort((a, b) => {
-				return a.value < b.value
+				return a.value.lt(b.value)
 					? 1
-					: a.value > b.value
+					: a.value.gt(b.value)
 						? -1
 						: 0;
 			})
