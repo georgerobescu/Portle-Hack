@@ -54,6 +54,9 @@ export default {
 			Vue.set(this.tokens, 'ETH', 'Ethereum');
 			Vue.set(this.decimals, 'ETH', 18);
 			// ERC20
+			if (!balanceResponse.tokens) {
+				return;
+			}
 			for (const tokenData of balanceResponse.tokens) {
 				const ticker = tokenData.tokenInfo.symbol;
 				if (!tokenData.tokenInfo.price) {
