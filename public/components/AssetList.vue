@@ -53,6 +53,13 @@ export default {
 				};
 				assets.push(asset);
 			}
+			assets.sort((a, b) => {
+				return a.value < b.value
+					? 1
+					: a.value > b.value
+						? -1
+						: 0;
+			})
 			return assets;
 		}
 	}
