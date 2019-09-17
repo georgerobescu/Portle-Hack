@@ -96,6 +96,9 @@ export default {
 
 .line-platform {
 	margin-top: 0.25em;
+	overflow: hidden;
+	white-space: nowrap;
+	text-overflow: ellipsis;
 }
 
 .line-platform,
