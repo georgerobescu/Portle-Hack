@@ -2,7 +2,7 @@
 	<div id="view">
 		<div class="header">
 			<h2>Assets</h2>
-			<div>
+			<div v-if="account.auth">
 				<button onclick="location.href='./send.html';">Send</button>
 				<button onclick="location.href='./swap.html';" style="margin-left: 8px">Swap</button>
 			</div>
