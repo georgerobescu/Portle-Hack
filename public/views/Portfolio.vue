@@ -24,7 +24,9 @@ export default {
 	data() {
 		return {
 			address: '',
-			prices: {},
+			prices: {
+				'ETH': 0,
+			},
 			balances: {},
 			tokens: {},
 			decimals: {},
@@ -36,21 +38,28 @@ export default {
 			this.$router.push('/login');
 			return;
 		}
+		this.loadEtherPrice();
 		this.loadBalances();
 	},
 	methods: {
+		async loadEtherPrice() {
+			const url = `https://api.cryptonator.com/api/ticker/eth-usd`;
+			const response = await fetch(url);
+			const priceResponse = await response.json();
+			const etherPrice = parseFloat(priceResponse.ticker.price);
+			Vue.set(this.prices, 'ETH', etherPrice);
+		},
 		async loadBalances() {
 			const url = `https://api.ethplorer.io/getAddressInfo/${this.address}?apiKey=freekey`;
 			const response = await fetch(url);
 			const balanceResponse = await response.json();
 			// ETH
-			const ethBalance = balanceResponse.ETH.balance;
-			const ethBalanceNumber = new BigNumber(ethBalance);
+			const etherBalance = balanceResponse.ETH.balance;
+			const etherBalanceNumber = new BigNumber(etherBalance);
 			const ten = new BigNumber(10);
-			const ethMultiplier = ten.pow(18);
-			const ethBalanceInWei = ethBalanceNumber.times(ethMultiplier);
-			Vue.set(this.prices, 'ETH', 200.62); // TODO
-			Vue.set(this.balances, 'ETH', ethBalanceInWei.toString());
+			const etherMultiplier = ten.pow(18);
+			const etherBalanceInWei = etherBalanceNumber.times(etherMultiplier);
+			Vue.set(this.balances, 'ETH', etherBalanceInWei.toString());
 			Vue.set(this.tokens, 'ETH', 'Ethereum');
 			Vue.set(this.decimals, 'ETH', 18);
 			// ERC20
@@ -68,7 +77,7 @@ export default {
 				Vue.set(this.tokens, ticker, tokenData.tokenInfo.name);
 				Vue.set(this.decimals, ticker, tokenData.tokenInfo.decimals);
 			}
-		}
+		},
 	},
 }
 </script>
