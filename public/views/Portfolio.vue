@@ -23,7 +23,10 @@ export default {
 	},
 	data() {
 		return {
-			address: '',
+			account: {
+				address: '',
+				auth: true,
+			},
 			prices: {
 				'ETH': 0,
 			},
@@ -33,11 +36,16 @@ export default {
 		}
 	},
 	mounted() {
-		this.address = localStorage.getItem('address');
-		if (!this.address) {
+		const address = localStorage.getItem('address');
+		const auth = localStorage.getItem('auth') == 'true';
+		if (!address) {
 			this.$router.push('/login');
 			return;
 		}
+		this.account = {
+			address,
+			auth,
+		};
 		this.loadEtherPrice();
 		this.loadBalances();
 	},
@@ -50,7 +58,7 @@ export default {
 			Vue.set(this.prices, 'ETH', etherPrice);
 		},
 		async loadBalances() {
-			const url = `https://api.ethplorer.io/getAddressInfo/${this.address}?apiKey=freekey`;
+			const url = `https://api.ethplorer.io/getAddressInfo/${this.account.address}?apiKey=freekey`;
 			const response = await fetch(url);
 			const balance = await response.json();
 			// ETH
