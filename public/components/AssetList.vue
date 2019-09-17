@@ -1,9 +1,9 @@
 <template>
 	<div id="list">
 		<div class="card" v-for="asset in assets" v-if="asset.value > 1">
-			<div class="line line-amount">{{ formatBalance(asset.balance) }} {{ asset.ticker }}</div>
-			<div class="line line-platform">{{ asset.title }}</div>
-			<div class="line line-balance line-sparse">
+			<div class="balance">{{ formatBalance(asset.balance) }} {{ asset.ticker }}</div>
+			<div class="title">{{ asset.title }}</div>
+			<div class="value sparse">
 				<div>{{ formatMoney(asset.price) }}</div>
 				<div>{{ formatMoney(asset.value)}}</div>
 			</div>
@@ -87,26 +87,26 @@ export default {
 	box-shadow: rgba(0, 0, 0, 0.2) 0px 2px 4px;
 }
 
-.line-amount {
+.balance {
 	font-size: 1.25em;
 	overflow: hidden;
 	white-space: nowrap;
 	text-overflow: ellipsis;
 }
 
-.line-platform {
+.title {
 	margin-top: 0.25em;
 	overflow: hidden;
 	white-space: nowrap;
 	text-overflow: ellipsis;
 }
 
-.line-platform,
-.line-balance {
+.title,
+.value {
 	color: gray;
 }
 
-.line-sparse {
+.sparse {
 	display: flex;
 	justify-content: space-between;
 }
