@@ -37,7 +37,8 @@ export default {
 		formatBalance(balance) {
 			return `${balance.toFixed(2)}`;
 		},
-		formatApr(apr) {
+		formatApr(aprString) {
+			const apr = parseFloat(aprString);
 			return `${(apr * 100).toFixed(2)}% APR`;
 		},
 		formatMoney(price) {
