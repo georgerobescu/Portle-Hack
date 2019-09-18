@@ -66,17 +66,32 @@ export default {
 			address,
 			auth,
 		};
-		this.loadEtherPrice();
+		this.loadPrices();
 		this.loadBalances();
 		this.loadCompound();
 	},
 	methods: {
-		async loadEtherPrice() {
-			const url = `https://api.cryptonator.com/api/ticker/eth-usd`;
+		async loadPrices() {
+			const tickers = {
+				'0x': 'ZRX',
+				'augur': 'REP',
+				'basic-attention-token': 'BAT',
+				'dai': 'DAI',
+				'ethereum': 'ETH',
+				'kyber-network': 'KNC',
+				'link': 'LINK',
+				'usd-coin': 'USDC',
+				'wrapped-bitcoin': 'WBTC',
+			};
+			const assetIds = Object.keys(tickers).join('%2C');
+			const url = `https://api.coingecko.com/api/v3/simple/price?ids=${assetIds}&vs_currencies=usd`;
 			const response = await fetch(url);
-			const price = await response.json();
-			const etherPrice = parseFloat(price.ticker.price);
-			Vue.set(this.prices, 'ETH', etherPrice);
+			const prices = await response.json();
+			for (const id in prices) {
+				const ticker = tickers[id];
+				const price = prices[id].usd;
+				Vue.set(this.prices, ticker, price);
+			}
 		},
 		async loadBalances() {
 			const url = `https://api.ethplorer.io/getAddressInfo/${this.account.address}?apiKey=freekey`;
@@ -100,8 +115,10 @@ export default {
 				if (!tokenData.tokenInfo.price) {
 					continue;
 				}
-				const price = tokenData.tokenInfo.price.rate;
-				Vue.set(this.prices, ticker, price);
+				if (!(ticker in this.prices)) {
+					const price = tokenData.tokenInfo.price.rate;
+					Vue.set(this.prices, ticker, price);
+				}
 				Vue.set(this.balances, ticker, tokenData.balance);
 				Vue.set(this.tokens, ticker, tokenData.tokenInfo.name);
 				Vue.set(this.decimals, ticker, tokenData.tokenInfo.decimals);
