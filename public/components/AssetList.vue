@@ -30,8 +30,8 @@ export default {
 			const price = this.prices[ticker];
 			const priceNumber = new BigNumber(price);
 			const balance = this.getBalance(ticker);
-			const worth = priceNumber.times(balance);
-			return worth;
+			const value = priceNumber.times(balance);
+			return value;
 		},
 		formatBalance(balance) {
 			return `${balance.toFixed(2)}`;
