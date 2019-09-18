@@ -42,14 +42,7 @@ export default {
 				'USDC': 1,
 			},
 			balances: {},
-			depositBalances: {
-				'DAI': {
-					'Fulcrum': '1000000000000000000000',
-				},
-				'USDC': {
-					'Compound': '500000000',
-				},
-			},
+			depositBalances: {},
 			tokens: {
 				'USDC': 'USD Coin',
 			},
@@ -57,26 +50,8 @@ export default {
 				'USDC': 6,
 			},
 			rates: {
-				'supply': {
-					'DAI': {
-						'Compound': 0.089,
-						'Fulcrum': 0.101,
-					},
-					'USDC': {
-						'Compound': 0.061,
-						'Fulcrum': 0.06,
-					},
-				},
-				'borrow': {
-					'DAI': {
-						'Compound': 0.132,
-						'Fulcrum': 0.145,
-					},
-					'USDC': {
-						'Compound': 0.083,
-						'Fulcrum': 0.087,
-					},
-				},
+				'supply': {},
+				'borrow': {},
 			},
 		}
 	},
@@ -93,6 +68,7 @@ export default {
 		};
 		this.loadEtherPrice();
 		this.loadBalances();
+		this.loadCompound();
 	},
 	methods: {
 		async loadEtherPrice() {
@@ -131,6 +107,43 @@ export default {
 				Vue.set(this.decimals, ticker, tokenData.tokenInfo.decimals);
 			}
 		},
+		async loadCompound() {
+			const ten = new BigNumber(10);
+			const multiplier = ten.pow(18);
+			// APR
+			const tokenUrl = 'https://api.compound.finance/api/v2/ctoken';
+			const tokenResponse = await fetch(tokenUrl);
+			const tokens = await tokenResponse.json();
+			for (const token of tokens.cToken) {
+				const asset = token.underlying_symbol;
+				if (!(asset in this.rates.supply)) {
+					Vue.set(this.rates.supply, asset, {});
+				}
+				if (!(asset in this.rates.borrow)) {
+					Vue.set(this.rates.borrow, asset, {});
+				}
+				Vue.set(this.rates.supply[asset], 'Compound', token.supply_rate.value);
+				Vue.set(this.rates.borrow[asset], 'Compound', token.borrow_rate.value);
+			}
+			// Balances
+			const accountUrl = `https://api.compound.finance/api/v2/account?addresses[]=${this.account.address}`;
+			const accountResponse = await fetch(accountUrl);
+			const accountData = await accountResponse.json();
+			const account = accountData.accounts[0];
+			for (const balance of account.tokens) {
+				const address = balance.address;
+				const token = tokens.cToken.find((token) => {
+					return token.token_address == address;
+				});
+				const ticker = token.underlying_symbol;
+				const supplyBalanceShort = new BigNumber(balance.supply_balance_underlying.value);
+				const supplyBalance = supplyBalanceShort.times(multiplier).toString();
+				if (!(ticker in this.depositBalances)) {
+					Vue.set(this.depositBalances, ticker, {});
+				}
+				Vue.set(this.depositBalances[ticker], 'Compound', supplyBalance);
+			}
+		}
 	},
 }
 </script>
