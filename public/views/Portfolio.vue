@@ -8,6 +8,14 @@
 			</div>
 		</div>
 		<AssetList :prices="prices" :balances="balances" :tokens="tokens" :decimals="decimals" />
+
+		<div class="header">
+			<h2>Deposits</h2>
+			<div v-if="account.auth">
+				<button onclick="location.href='./deposit-new.html';">New deposit</button>
+			</div>
+		</div>
+		<DepositList :prices="prices" :depositBalances="depositBalances" :tokens="tokens" :decimals="decimals" />
 	</div>
 </template>
 
@@ -16,10 +24,12 @@ import Vue from 'vue';
 import BigNumber from 'bignumber.js';
 
 import AssetList from '../components/AssetList.vue';
+import DepositList from '../components/DepositList.vue';
 
 export default {
 	components: {
-		AssetList
+		AssetList,
+		DepositList,
 	},
 	data() {
 		return {
@@ -29,10 +39,23 @@ export default {
 			},
 			prices: {
 				'ETH': 0,
+				'USDC': 1,
 			},
 			balances: {},
-			tokens: {},
-			decimals: {},
+			depositBalances: {
+				'DAI': {
+					'Fulcrum': '1000000000000000000000',
+				},
+				'USDC': {
+					'Compound': '500000000',
+				},
+			},
+			tokens: {
+				'USDC': 'USD Coin',
+			},
+			decimals: {
+				'USDC': 6,
+			},
 		}
 	},
 	mounted() {
