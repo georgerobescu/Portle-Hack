@@ -15,10 +15,10 @@
 import BigNumber from 'bignumber.js';
 
 export default {
-	props: [ 'depositBalances', 'rates', 'prices', 'tokens', 'decimals' ],
+	props: [ 'balances', 'rates', 'prices', 'tokens', 'decimals' ],
 	methods: {
 		getBalance(ticker, platform) {
-			const tokenBalances = this.depositBalances[ticker];
+			const tokenBalances = this.balances[ticker];
 			const balance = tokenBalances[platform];
 			const decimals = this.decimals[ticker];
 			const balanceNumber = new BigNumber(balance);
@@ -48,9 +48,9 @@ export default {
 	computed: {
 		deposits() {
 			const deposits = [];
-			for (const ticker in this.depositBalances) {
+			for (const ticker in this.balances) {
 				const price = this.prices[this.ticker];
-				const tokenBalances = this.depositBalances[ticker];
+				const tokenBalances = this.balances[ticker];
 				for (const platform in tokenBalances) {
 					const deposit = {
 						balance: this.getBalance(ticker, platform),

@@ -7,7 +7,7 @@
 				<button onclick="location.href='./swap.html';" style="margin-left: 8px">Swap</button>
 			</div>
 		</div>
-		<AssetList :prices="prices" :balances="balances" :tokens="tokens" :decimals="decimals" />
+		<AssetList :balances="balances" :prices="prices" :tokens="tokens" :decimals="decimals" />
 
 		<div class="header">
 			<h2>Deposits</h2>
@@ -15,7 +15,7 @@
 				<button onclick="location.href='./deposit-new.html';">New deposit</button>
 			</div>
 		</div>
-		<DepositList :prices="prices" :depositBalances="depositBalances" :tokens="tokens" :decimals="decimals" :rates="rates" />
+		<DepositList :balances="depositBalances" :rates="rates" :prices="prices" :tokens="tokens" :decimals="decimals" />
 	</div>
 </template>
 
@@ -37,21 +37,21 @@ export default {
 				address: '',
 				auth: true,
 			},
+			balances: {},
+			depositBalances: {},
+			rates: {
+				'supply': {},
+				'borrow': {},
+			},
 			prices: {
 				'ETH': 0,
 				'USDC': 1,
 			},
-			balances: {},
-			depositBalances: {},
 			tokens: {
 				'USDC': 'USD Coin',
 			},
 			decimals: {
 				'USDC': 6,
-			},
-			rates: {
-				'supply': {},
-				'borrow': {},
 			},
 		}
 	},

@@ -15,7 +15,7 @@
 import BigNumber from 'bignumber.js';
 
 export default {
-	props: [ 'prices', 'balances', 'tokens', 'decimals' ],
+	props: [ 'balances', 'prices', 'tokens', 'decimals' ],
 	methods: {
 		getBalance(ticker) {
 			const balance = this.balances[ticker];
