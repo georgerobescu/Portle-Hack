@@ -62,6 +62,13 @@ export default {
 					deposits.push(deposit);
 				}
 			}
+			deposits.sort((a, b) => {
+				return a.value.lt(b.value)
+					? 1
+					: a.value.gt(b.value)
+						? -1
+						: 0;
+			});
 			return deposits;
 		}
 	}
