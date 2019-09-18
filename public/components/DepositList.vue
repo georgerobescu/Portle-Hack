@@ -15,7 +15,7 @@
 import BigNumber from 'bignumber.js';
 
 export default {
-	props: [ 'depositBalances', 'prices', 'tokens', 'decimals' ],
+	props: [ 'depositBalances', 'rates', 'prices', 'tokens', 'decimals' ],
 	methods: {
 		getBalance(ticker, platform) {
 			const tokenBalances = this.depositBalances[ticker];
@@ -38,7 +38,7 @@ export default {
 			return `${balance.toFixed(2)}`;
 		},
 		formatApr(apr) {
-			return `${apr * 100}% APR`;
+			return `${(apr * 100).toFixed(2)}% APR`;
 		},
 		formatMoney(price) {
 			return `$${price.toFixed(2)}`;
@@ -55,7 +55,7 @@ export default {
 						balance: this.getBalance(ticker, platform),
 						ticker,
 						platform,
-						apr: 0.113,
+						apr: this.rates.supply[ticker][platform],
 						value: this.getValue(ticker, platform),
 					};
 					deposits.push(deposit);
