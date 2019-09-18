@@ -1,6 +1,6 @@
 <template>
 	<div id="list">
-		<div class="card" v-for="asset in assets" v-if="asset.value > 1">
+		<div class="card" v-for="asset in assets" v-if="asset.value.gt(1)">
 			<div class="balance">{{ formatBalance(asset.balance) }} {{ asset.ticker }}</div>
 			<div class="title">{{ asset.title }}</div>
 			<div class="value sparse">
