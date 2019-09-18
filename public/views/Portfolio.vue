@@ -15,7 +15,7 @@
 				<button onclick="location.href='./deposit-new.html';">New deposit</button>
 			</div>
 		</div>
-		<DepositList :prices="prices" :depositBalances="depositBalances" :tokens="tokens" :decimals="decimals" />
+		<DepositList :prices="prices" :depositBalances="depositBalances" :tokens="tokens" :decimals="decimals" :rates="rates" />
 	</div>
 </template>
 
@@ -55,6 +55,28 @@ export default {
 			},
 			decimals: {
 				'USDC': 6,
+			},
+			rates: {
+				'supply': {
+					'DAI': {
+						'Compound': 0.089,
+						'Fulcrum': 0.101,
+					},
+					'USDC': {
+						'Compound': 0.061,
+						'Fulcrum': 0.06,
+					},
+				},
+				'borrow': {
+					'DAI': {
+						'Compound': 0.132,
+						'Fulcrum': 0.145,
+					},
+					'USDC': {
+						'Compound': 0.083,
+						'Fulcrum': 0.087,
+					},
+				},
 			},
 		}
 	},
