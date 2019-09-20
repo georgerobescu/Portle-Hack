@@ -69,6 +69,7 @@ export default {
 		this.loadPrices();
 		this.loadBalances();
 		this.loadCompound();
+		this.loadFulcrum();
 	},
 	methods: {
 		async loadPrices() {
@@ -159,6 +160,64 @@ export default {
 					Vue.set(this.depositBalances, ticker, {});
 				}
 				Vue.set(this.depositBalances[ticker], 'Compound', supplyBalance);
+			}
+		},
+		async loadFulcrum() {
+			const url = "https://api.thegraph.com/subgraphs/name/destiner/fulcrum";
+			const query = `
+				query {
+					userBalances(where: {
+						id: "${this.account.address}"
+					}) {
+						balances(first: 10) {
+							token {
+								symbol
+								index
+								supplyRate
+								borrowRate
+							}
+							balance
+						}
+					}
+				}`;
+			const opts = {
+				method: "POST",
+				headers: { "Content-Type": "application/json" },
+				body: JSON.stringify({ query })
+			};
+			const response = await fetch(url, opts);
+			const json = await response.json();
+			const data = json.data;
+			const balances = data.userBalances[0].balances;
+			for (const balance of balances) {
+				const ticker = balance.token.symbol.substr(1);
+				const index = balance.token.index;
+				const tokenRawBalance = balance.balance;
+				// Set balances
+				if (!(ticker in this.depositBalances)) {
+					Vue.set(this.depositBalances, ticker, {});
+				}
+				const tokenRawBalanceNumber = new BigNumber(tokenRawBalance);
+				const tokenBalanceNumber = tokenRawBalanceNumber.times(index).div('1e18');
+				const tokenBalance = tokenBalanceNumber.toString();
+				Vue.set(this.depositBalances[ticker], 'Fulcrum', tokenBalance);
+				// Set rates
+				const supplyRawRate = balance.token.supplyRate;
+				const borrowRawRate = balance.token.borrowRate;
+				const supplyRawRateNumber = new BigNumber(supplyRawRate);
+				const borrowRawRateNumber = new BigNumber(borrowRawRate);
+				const supplyRateNumber = supplyRawRateNumber.div('1e18').div('1e2');
+				const borrowRateNumber = borrowRawRateNumber.div('1e18').div('1e2');
+				const supplyRate = supplyRateNumber.toString();
+				const borrowRate = borrowRateNumber.toString();
+				if (!(ticker in this.rates.supply)) {
+					Vue.set(this.rates.supply, ticker, {});
+				}
+				if (!(ticker in this.rates.borrow)) {
+					Vue.set(this.rates.borrow, ticker, {});
+				}
+				Vue.set(this.rates.supply[ticker], 'Fulcrum', supplyRate);
+				Vue.set(this.rates.borrow[ticker], 'Fulcrum', borrowRate);
 			}
 		}
 	},
