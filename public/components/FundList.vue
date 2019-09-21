@@ -59,6 +59,13 @@ export default {
 					funds.push(fund);
 				}
 			}
+			funds.sort((a, b) => {
+				return a.value.lt(b.value)
+					? 1
+					: a.value.gt(b.value)
+						? -1
+						: 0;
+			});
 			return funds;
 		}
 	}
