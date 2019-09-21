@@ -16,6 +16,14 @@
 			</div>
 		</div>
 		<DepositList :balances="depositBalances" :rates="rates" :prices="prices" :tokens="tokens" :decimals="decimals" />
+
+		<div class="header">
+			<h2>Funds</h2>
+			<div v-if="account.auth">
+				<button onclick="location.href='./fund-new.html';">New investment</button>
+			</div>
+		</div>
+		<FundList :balances="fundBalances" :fundData="funds" :ethPrice="prices['ETH']" />
 	</div>
 </template>
 
@@ -25,11 +33,13 @@ import BigNumber from 'bignumber.js';
 
 import AssetList from '../components/AssetList.vue';
 import DepositList from '../components/DepositList.vue';
+import FundList from '../components/FundList.vue';
 
 export default {
 	components: {
 		AssetList,
 		DepositList,
+		FundList,
 	},
 	data() {
 		return {
@@ -39,12 +49,18 @@ export default {
 			},
 			balances: {},
 			depositBalances: {},
+			fundBalances: {
+				'Melon': {},
+			},
 			rates: {
 				'supply': {},
 				'borrow': {},
 			},
+			funds: {
+				'Melon': {},
+			},
 			prices: {
-				'ETH': 0,
+				'ETH': 210.6,
 				'USDC': 1,
 			},
 			tokens: {
@@ -70,6 +86,7 @@ export default {
 		this.loadBalances();
 		this.loadCompound();
 		this.loadFulcrum();
+		this.loadMelon();
 	},
 	methods: {
 		async loadPrices() {
@@ -245,6 +262,45 @@ export default {
 				}
 				Vue.set(this.rates.supply[ticker], 'Fulcrum', supplyRate);
 				Vue.set(this.rates.borrow[ticker], 'Fulcrum', borrowRate);
+			}
+		},
+		async loadMelon() {
+			const url = "https://api.thegraph.com/subgraphs/name/melonproject/melon";
+			const query = `
+				query {
+					investments(where: {
+						owner: "${this.account.address}"
+					}) {
+						fund {
+							name
+							sharePrice
+						}
+						shares
+					}
+				}`;
+			const opts = {
+				method: "POST",
+				headers: { "Content-Type": "application/json" },
+				body: JSON.stringify({ query })
+			};
+			const response = await fetch(url, opts);
+			const json = await response.json();
+			const data = json.data;
+			const investments = data.investments;
+			for (const investment of investments) {
+				const balance = investment.shares;
+				const name = investment.fund.name;
+				const priceRaw = investment.fund.sharePrice;
+				const priceRawNumber = new BigNumber(priceRaw);
+				const priceNumber = priceRawNumber.div('1e18');
+				const price = priceNumber.toString();
+				const roi = -0.0729; // TODO
+				const fund = {
+					price,
+					roi,
+				};
+				Vue.set(this.fundBalances['Melon'], name, balance);
+				Vue.set(this.funds['Melon'], name, fund);
 			}
 		}
 	},
