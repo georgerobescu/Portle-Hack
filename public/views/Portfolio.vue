@@ -134,24 +134,17 @@ export default {
 			const etherMultiplier = ten.pow(18);
 			const etherBalanceInWei = etherBalanceNumber.times(etherMultiplier);
 			Vue.set(this.balances, 'ETH', etherBalanceInWei.toString());
-			Vue.set(this.tokens, 'ETH', 'Ethereum');
-			Vue.set(this.decimals, 'ETH', 18);
 			// ERC20
 			if (!balance.tokens) {
 				return;
 			}
 			for (const tokenData of balance.tokens) {
 				const ticker = tokenData.tokenInfo.symbol;
-				if (!tokenData.tokenInfo.price) {
+				if (!(ticker in this.prices)) {
+					console.log(`Price for ${ticker} is not available`);
 					continue;
 				}
-				if (!(ticker in this.prices)) {
-					const price = tokenData.tokenInfo.price.rate;
-					Vue.set(this.prices, ticker, price);
-				}
 				Vue.set(this.balances, ticker, tokenData.balance);
-				Vue.set(this.tokens, ticker, tokenData.tokenInfo.name);
-				Vue.set(this.decimals, ticker, tokenData.tokenInfo.decimals);
 			}
 		},
 		async loadCompound() {
