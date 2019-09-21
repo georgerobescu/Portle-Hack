@@ -294,7 +294,7 @@ export default {
 				const priceRawNumber = new BigNumber(priceRaw);
 				const priceNumber = priceRawNumber.div('1e18');
 				const price = priceNumber.toString();
-				const roi = -0.0729; // TODO
+				const roi = 1; // TODO
 				const fund = {
 					price,
 					roi,

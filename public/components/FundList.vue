@@ -4,7 +4,7 @@
 			<div class="balance">{{ formatBalance(fund.balance) }} {{ fund.name }}</div>
 			<div class="platform">{{ fund.platform }}</div>
 			<div class="details sparse">
-				<div>{{ formatRoi(fund.roi) }}</div>
+				<div>{{  }}</div>
 				<div>{{ formatMoney(fund.value)}}</div>
 			</div>
 		</div>
