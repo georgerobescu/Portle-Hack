@@ -151,6 +151,9 @@ export default {
 			const response = await fetch(url, opts);
 			const json = await response.json();
 			const data = json.data;
+			if (data.userBalances.length == 0) {
+				return;
+			}
 			const balances = data.userBalances[0].balances;
 			for (const balance of balances) {
 				const ticker = balance.token.symbol.substr(1);
@@ -209,6 +212,9 @@ export default {
 			const response = await fetch(url, opts);
 			const json = await response.json();
 			const data = json.data;
+			if (data.userBalances.length == 0) {
+				return;
+			}
 			const balances = data.userBalances[0].balances;
 			for (const balance of balances) {
 				const ticker = balance.token.symbol.substr(1);
