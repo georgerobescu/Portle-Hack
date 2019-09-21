@@ -126,40 +126,61 @@ export default {
 			}
 		},
 		async loadCompound() {
-			const ten = new BigNumber(10);
-			const multiplier = ten.pow(18);
-			// APR
-			const tokenUrl = 'https://api.compound.finance/api/v2/ctoken';
-			const tokenResponse = await fetch(tokenUrl);
-			const tokens = await tokenResponse.json();
-			for (const token of tokens.cToken) {
-				const asset = token.underlying_symbol;
-				if (!(asset in this.rates.supply)) {
-					Vue.set(this.rates.supply, asset, {});
-				}
-				if (!(asset in this.rates.borrow)) {
-					Vue.set(this.rates.borrow, asset, {});
-				}
-				Vue.set(this.rates.supply[asset], 'Compound', token.supply_rate.value);
-				Vue.set(this.rates.borrow[asset], 'Compound', token.borrow_rate.value);
-			}
-			// Balances
-			const accountUrl = `https://api.compound.finance/api/v2/account?addresses[]=${this.account.address}`;
-			const accountResponse = await fetch(accountUrl);
-			const accountData = await accountResponse.json();
-			const account = accountData.accounts[0];
-			for (const balance of account.tokens) {
-				const address = balance.address;
-				const token = tokens.cToken.find((token) => {
-					return token.token_address == address;
-				});
-				const ticker = token.underlying_symbol;
-				const supplyBalanceShort = new BigNumber(balance.supply_balance_underlying.value);
-				const supplyBalance = supplyBalanceShort.times(multiplier).toString();
+			const url = "https://api.thegraph.com/subgraphs/name/destiner/compound";
+			const query = `
+				query {
+					userBalances(where: {
+						id: "${this.account.address}"
+					}) {
+						balances(first: 10) {
+							token {
+								symbol
+								index
+								supplyRate
+								borrowRate
+							}
+							balance
+						}
+					}
+				}`;
+			const opts = {
+				method: "POST",
+				headers: { "Content-Type": "application/json" },
+				body: JSON.stringify({ query })
+			};
+			const response = await fetch(url, opts);
+			const json = await response.json();
+			const data = json.data;
+			const balances = data.userBalances[0].balances;
+			for (const balance of balances) {
+				const ticker = balance.token.symbol.substr(1);
+				const index = balance.token.index;
+				const tokenRawBalance = balance.balance;
+				// Set balances
 				if (!(ticker in this.depositBalances)) {
 					Vue.set(this.depositBalances, ticker, {});
 				}
-				Vue.set(this.depositBalances[ticker], 'Compound', supplyBalance);
+				const tokenRawBalanceNumber = new BigNumber(tokenRawBalance);
+				const tokenBalanceNumber = tokenRawBalanceNumber.times(index).div('1e18');
+				const tokenBalance = tokenBalanceNumber.toString();
+				Vue.set(this.depositBalances[ticker], 'Compound', tokenBalance);
+				// Set rates
+				const supplyRawRate = balance.token.supplyRate;
+				const borrowRawRate = balance.token.borrowRate;
+				const supplyRawRateNumber = new BigNumber(supplyRawRate);
+				const borrowRawRateNumber = new BigNumber(borrowRawRate);
+				const supplyRateNumber = supplyRawRateNumber.times('2102400').div('1e18');
+				const borrowRateNumber = borrowRawRateNumber.times('2102400').div('1e18');
+				const supplyRate = supplyRateNumber.toString();
+				const borrowRate = borrowRateNumber.toString();
+				if (!(ticker in this.rates.supply)) {
+					Vue.set(this.rates.supply, ticker, {});
+				}
+				if (!(ticker in this.rates.borrow)) {
+					Vue.set(this.rates.borrow, ticker, {});
+				}
+				Vue.set(this.rates.supply[ticker], 'Compound', supplyRate);
+				Vue.set(this.rates.borrow[ticker], 'Compound', borrowRate);
 			}
 		},
 		async loadFulcrum() {
