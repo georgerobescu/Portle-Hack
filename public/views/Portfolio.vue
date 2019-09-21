@@ -60,14 +60,37 @@ export default {
 				'Melon': {},
 			},
 			prices: {
-				'ETH': 210.6,
+				'ETH': 215.63,
+				'DAI': 1.001,
 				'USDC': 1,
+				'ZRX': 0.239459,
+				'REP': 10.7467,
+				'BAT': 0.2075,
+				'KNC': 0.2234,
+				'LINK': 1.8180,
+				'WBTC': 9936.9244,
 			},
 			tokens: {
+				'ETH': 'Ethereum',
+				'DAI': 'DAI Stablecoin',
 				'USDC': 'USD Coin',
+				'ZRX': '0x Protocol Token',
+				'REP': 'Reputation',
+				'BAT': 'Basic Attention Token',
+				'KNC': 'Kyber Network',
+				'LINK': 'ChainLink Token',
+				'WBTC': 'Wrapped BTC',
 			},
 			decimals: {
+				'ETH': 18,
+				'DAI': 18,
 				'USDC': 6,
+				'ZRX': 18,
+				'REP': 18,
+				'BAT': 18,
+				'KNC': 18,
+				'LINK': 18,
+				'WBTC': 8,
 			},
 		}
 	},
@@ -82,35 +105,12 @@ export default {
 			address,
 			auth,
 		};
-		this.loadPrices();
 		this.loadBalances();
 		this.loadCompound();
 		this.loadFulcrum();
 		this.loadMelon();
 	},
 	methods: {
-		async loadPrices() {
-			const tickers = {
-				'0x': 'ZRX',
-				'augur': 'REP',
-				'basic-attention-token': 'BAT',
-				'dai': 'DAI',
-				'ethereum': 'ETH',
-				'kyber-network': 'KNC',
-				'link': 'LINK',
-				'usd-coin': 'USDC',
-				'wrapped-bitcoin': 'WBTC',
-			};
-			const assetIds = Object.keys(tickers).join('%2C');
-			const url = `https://api.coingecko.com/api/v3/simple/price?ids=${assetIds}&vs_currencies=usd`;
-			const response = await fetch(url);
-			const prices = await response.json();
-			for (const id in prices) {
-				const ticker = tickers[id];
-				const price = prices[id].usd;
-				Vue.set(this.prices, ticker, price);
-			}
-		},
 		async loadBalances() {
 			const url = `https://api.ethplorer.io/getAddressInfo/${this.account.address}?apiKey=freekey`;
 			const response = await fetch(url);
