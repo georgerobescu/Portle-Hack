@@ -279,6 +279,12 @@ export default {
 							}
 							balance
 						}
+						positions(first: 10) {
+							token {
+								symbol
+							}
+							balance
+						}
 					}
 				}`;
 			const opts = {
@@ -322,6 +328,22 @@ export default {
 				}
 				Vue.set(this.rates.supply[ticker], 'Fulcrum', supplyRate);
 				Vue.set(this.rates.borrow[ticker], 'Fulcrum', borrowRate);
+			}
+			const positions = data.userBalances[0].positions;
+			for (const position of positions) {
+				const ticker = position.token.symbol;
+				const tokenBalance = position.balance;
+				// Set balances
+				if (!(ticker in this.loanBalances)) {
+					Vue.set(this.loanBalances, ticker, {});
+				}
+				Vue.set(this.loanBalances[ticker], 'Fulcrum', tokenBalance);
+				if (!(ticker in this.rates.borrow)) {
+					Vue.set(this.rates.borrow, ticker, {});
+				}
+				Vue.set(this.rates.borrow[ticker], 'Fulcrum', 0); // TODO
+				Vue.set(this.prices, ticker, 100); // TODO
+				Vue.set(this.decimals, ticker, 18);
 			}
 		},
 		async loadMelon() {
