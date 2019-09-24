@@ -49,6 +49,7 @@ export default {
 			},
 			balances: {},
 			depositBalances: {},
+			loanBalances: {},
 			fundBalances: {
 				'Melon': {},
 			},
@@ -157,11 +158,23 @@ export default {
 						balances(first: 10) {
 							token {
 								symbol
-								index
+								supplyIndex
+								borrowIndex
 								supplyRate
 								borrowRate
 							}
 							balance
+						}
+						loans(first: 10) {
+							token {
+								symbol
+								supplyIndex
+								borrowIndex
+								supplyRate
+								borrowRate
+							}
+							amount
+							index
 						}
 					}
 				}`;
@@ -179,19 +192,51 @@ export default {
 			const balances = data.userBalances[0].balances;
 			for (const balance of balances) {
 				const ticker = balance.token.symbol.substr(1);
-				const index = balance.token.index;
+				const supplyIndex = balance.token.supplyIndex;
 				const tokenRawBalance = balance.balance;
 				// Set balances
 				if (!(ticker in this.depositBalances)) {
 					Vue.set(this.depositBalances, ticker, {});
 				}
 				const tokenRawBalanceNumber = new BigNumber(tokenRawBalance);
-				const tokenBalanceNumber = tokenRawBalanceNumber.times(index).div('1e18');
+				const tokenBalanceNumber = tokenRawBalanceNumber.times(supplyIndex).div('1e18');
 				const tokenBalance = tokenBalanceNumber.toString();
 				Vue.set(this.depositBalances[ticker], 'Compound', tokenBalance);
 				// Set rates
 				const supplyRawRate = balance.token.supplyRate;
 				const borrowRawRate = balance.token.borrowRate;
+				const supplyRawRateNumber = new BigNumber(supplyRawRate);
+				const borrowRawRateNumber = new BigNumber(borrowRawRate);
+				const supplyRateNumber = supplyRawRateNumber.times('2102400').div('1e18');
+				const borrowRateNumber = borrowRawRateNumber.times('2102400').div('1e18');
+				const supplyRate = supplyRateNumber.toString();
+				const borrowRate = borrowRateNumber.toString();
+				if (!(ticker in this.rates.supply)) {
+					Vue.set(this.rates.supply, ticker, {});
+				}
+				if (!(ticker in this.rates.borrow)) {
+					Vue.set(this.rates.borrow, ticker, {});
+				}
+				Vue.set(this.rates.supply[ticker], 'Compound', supplyRate);
+				Vue.set(this.rates.borrow[ticker], 'Compound', borrowRate);
+			}
+			const loans = data.userBalances[0].loans;
+			for (const loan of loans) {
+				const ticker = loan.token.symbol.substr(1);
+				const borrowIndex = loan.token.borrowIndex;
+				const loanRawAmount = loan.amount;
+				const loanIndex = loan.index;
+				// Set balances
+				if (!(ticker in this.loanBalances)) {
+					Vue.set(this.loanBalances, ticker, {});
+				}
+				const loanRawAmountNumber = new BigNumber(loanRawAmount);
+				const loanAmountNumber = loanRawAmountNumber.times(borrowIndex).div(loanIndex);
+				const loanAmount = loanAmountNumber.toString();
+				Vue.set(this.loanBalances[ticker], 'Compound', loanAmount);
+				// Set rates
+				const supplyRawRate = loan.token.supplyRate;
+				const borrowRawRate = loan.token.borrowRate;
 				const supplyRawRateNumber = new BigNumber(supplyRawRate);
 				const borrowRawRateNumber = new BigNumber(borrowRawRate);
 				const supplyRateNumber = supplyRawRateNumber.times('2102400').div('1e18');
