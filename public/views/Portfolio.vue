@@ -282,6 +282,12 @@ export default {
 						positions(first: 10) {
 							token {
 								symbol
+								collateral {
+									symbol
+									supplyRate
+									borrowRate
+								}
+								price
 							}
 							balance
 						}
@@ -338,11 +344,29 @@ export default {
 					Vue.set(this.loanBalances, ticker, {});
 				}
 				Vue.set(this.loanBalances[ticker], 'Fulcrum', tokenBalance);
+				// Set rates
+				const supplyRawRate = position.token.collateral.supplyRate;
+				const borrowRawRate = position.token.collateral.borrowRate;
+				const supplyRawRateNumber = new BigNumber(supplyRawRate);
+				const borrowRawRateNumber = new BigNumber(borrowRawRate);
+				const supplyRateNumber = supplyRawRateNumber.div('1e18').div('1e2');
+				const borrowRateNumber = borrowRawRateNumber.div('1e18').div('1e2');
+				const supplyRate = supplyRateNumber.toString();
+				const borrowRate = borrowRateNumber.toString();
+				if (!(ticker in this.rates.supply)) {
+					Vue.set(this.rates.supply, ticker, {});
+				}
 				if (!(ticker in this.rates.borrow)) {
 					Vue.set(this.rates.borrow, ticker, {});
 				}
-				Vue.set(this.rates.borrow[ticker], 'Fulcrum', 0); // TODO
-				Vue.set(this.prices, ticker, 100); // TODO
+				Vue.set(this.rates.supply[ticker], 'Fulcrum', supplyRate);
+				Vue.set(this.rates.borrow[ticker], 'Fulcrum', borrowRate);
+				// Set price and decimals
+				const priceRaw = position.token.price;
+				const priceRawNumber = new BigNumber(priceRaw);
+				const priceNumber = priceRawNumber.div('1e18');
+				const price = priceNumber.toString();
+				Vue.set(this.prices, ticker, price);
 				Vue.set(this.decimals, ticker, 18);
 			}
 		},
