@@ -18,6 +18,14 @@
 		<DepositList :balances="depositBalances" :rates="rates" :prices="prices" :tokens="tokens" :decimals="decimals" />
 
 		<div class="header">
+			<h2>Loans</h2>
+			<div v-if="account.auth">
+				<button onclick="location.href='./loan-new.html';">New loan</button>
+			</div>
+		</div>
+		<LoanList :balances="loanBalances" :rates="rates" :prices="prices" :tokens="tokens" :decimals="decimals" />
+
+		<div class="header">
 			<h2>Funds</h2>
 			<div v-if="account.auth">
 				<button onclick="location.href='./fund-new.html';">New investment</button>
@@ -33,12 +41,14 @@ import BigNumber from 'bignumber.js';
 
 import AssetList from '../components/AssetList.vue';
 import DepositList from '../components/DepositList.vue';
+import LoanList from '../components/LoanList.vue';
 import FundList from '../components/FundList.vue';
 
 export default {
 	components: {
 		AssetList,
 		DepositList,
+		LoanList,
 		FundList,
 	},
 	data() {
