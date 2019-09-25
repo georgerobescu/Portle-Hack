@@ -39,6 +39,10 @@
 import Vue from 'vue';
 import BigNumber from 'bignumber.js';
 
+import prices from '../data/prices.json';
+import tokens from '../data/tokens.json';
+import decimals from '../data/decimals.json';
+
 import AssetList from '../components/AssetList.vue';
 import DepositList from '../components/DepositList.vue';
 import LoanList from '../components/LoanList.vue';
@@ -69,51 +73,6 @@ export default {
 			},
 			funds: {
 				'Melon': {},
-			},
-			prices: {
-				'ETH': 215.63,
-				'WETH': 215.63,
-				'DAI': 1.001,
-				'USDC': 1,
-				'ZRX': 0.239459,
-				'REP': 10.7467,
-				'BAT': 0.2075,
-				'KNC': 0.2234,
-				'LINK': 1.8180,
-				'WBTC': 9936.9244,
-				'ERC20': 0.0344,
-				'AOA': 0.0090,
-				'AMB': 0.0193,
-			},
-			tokens: {
-				'ETH': 'Ether',
-				'WETH': 'Wrapped Ether',
-				'DAI': 'DAI Stablecoin',
-				'USDC': 'USD Coin',
-				'ZRX': '0x Protocol Token',
-				'REP': 'Reputation',
-				'BAT': 'Basic Attention Token',
-				'KNC': 'Kyber Network',
-				'LINK': 'ChainLink Token',
-				'WBTC': 'Wrapped BTC',
-				'ERC20': 'ERC20',
-				'AOA': 'Aurora',
-				'AMB': 'Amber',
-			},
-			decimals: {
-				'ETH': 18,
-				'WETH': 18,
-				'DAI': 18,
-				'USDC': 6,
-				'ZRX': 18,
-				'REP': 18,
-				'BAT': 18,
-				'KNC': 18,
-				'LINK': 18,
-				'WBTC': 8,
-				'ERC20': 18,
-				'AOA': 18,
-				'AMB': 18,
 			},
 		}
 	},
@@ -410,5 +369,16 @@ export default {
 			}
 		}
 	},
+	computed: {
+		prices() {
+			return prices;
+		},
+		tokens() {
+			return tokens;
+		},
+		decimals() {
+			return decimals;
+		},
+	}
 }
 </script>
