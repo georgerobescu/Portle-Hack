@@ -1,6 +1,6 @@
 <template>
 	<div id="list">
-		<div class="card" v-for="asset in assets" v-if="asset.value.gt(1)">
+		<div class="card" v-for="asset in assets" v-if="asset.value.gt(1)" @click="openAsset(asset)">
 			<div class="balance">{{ formatBalance(asset.balance) }} {{ asset.ticker }}</div>
 			<div class="title">{{ asset.title }}</div>
 			<div class="value sparse">
@@ -17,6 +17,10 @@ import BigNumber from 'bignumber.js';
 export default {
 	props: [ 'balances', 'prices', 'tokens', 'decimals' ],
 	methods: {
+		openAsset(asset) {
+			const path = `/asset/${asset.ticker}`;
+			this.$router.push(path);
+		},
 		getBalance(ticker) {
 			const balance = this.balances[ticker];
 			const decimals = this.decimals[ticker];
