@@ -4,7 +4,7 @@
 			<div class="balance">{{ formatBalance(loan.balance) }} {{ loan.ticker }}</div>
 			<div class="platform">{{ loan.platform }}</div>
 			<div class="details sparse">
-				<div>{{ formatApr(loan.apr) }}</div>
+				<div>{{ formatRate(loan.rate) }} APR</div>
 				<div>{{ formatMoney(loan.value)}}</div>
 			</div>
 		</div>
@@ -37,9 +37,9 @@ export default {
 		formatBalance(balance) {
 			return `${balance.toFixed(2)}`;
 		},
-		formatApr(aprString) {
-			const apr = parseFloat(aprString);
-			return `${(apr * 100).toFixed(2)}% APR`;
+		formatRate(rateString) {
+			const rate = parseFloat(rateString);
+			return `${(rate * 100).toFixed(2)}%`;
 		},
 		formatMoney(price) {
 			return `($${price.toFixed(2)})`;
@@ -56,7 +56,7 @@ export default {
 						balance: this.getBalance(ticker, platform),
 						ticker,
 						platform,
-						apr: this.rates.borrow[ticker][platform],
+						rate: this.rates.borrow[ticker][platform],
 						value: this.getValue(ticker, platform),
 					};
 					loans.push(loan);

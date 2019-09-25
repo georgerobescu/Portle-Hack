@@ -4,7 +4,7 @@
 			<div class="balance">{{ formatBalance(deposit.balance) }} {{ deposit.ticker }}</div>
 			<div class="platform">{{ deposit.platform }}</div>
 			<div class="details sparse">
-				<div>{{ formatApr(deposit.apr) }}</div>
+				<div>{{ formatRate(deposit.rate)}} APR</div>
 				<div>{{ formatMoney(deposit.value)}}</div>
 			</div>
 		</div>
@@ -41,9 +41,9 @@ export default {
 		formatBalance(balance) {
 			return `${balance.toFixed(2)}`;
 		},
-		formatApr(aprString) {
-			const apr = parseFloat(aprString);
-			return `${(apr * 100).toFixed(2)}% APR`;
+		formatRate(rateString) {
+			const rate = parseFloat(rateString);
+			return `${(rate * 100).toFixed(2)}%`;
 		},
 		formatMoney(price) {
 			return `$${price.toFixed(2)}`;
@@ -60,7 +60,7 @@ export default {
 						balance: this.getBalance(ticker, platform),
 						ticker,
 						platform,
-						apr: this.rates.supply[ticker][platform],
+						rate: this.rates.supply[ticker][platform],
 						value: this.getValue(ticker, platform),
 					};
 					deposits.push(deposit);
