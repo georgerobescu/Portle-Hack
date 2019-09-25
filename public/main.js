@@ -13,8 +13,8 @@ Vue.use(VueRouter);
 const routes = [
 	{ path: '/login', component: Login },
 	{ path: '/', component: Portfolio },
-	{ path: '/asset/:asset', component: Asset },
-	{ path: '/deposit/:platform/:asset', component: Deposit },
+	{ path: '/asset/:ticker', component: Asset },
+	{ path: '/deposit/:platform/:ticker', component: Deposit },
 ];
 
 const router = new VueRouter({

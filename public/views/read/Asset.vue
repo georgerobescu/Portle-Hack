@@ -32,7 +32,7 @@ export default {
 			address,
 			auth,
 		};
-		this.ticker = this.$route.params.asset;
+		this.ticker = this.$route.params.ticker;
 		this.loadBalance();
 	},
 	methods: {

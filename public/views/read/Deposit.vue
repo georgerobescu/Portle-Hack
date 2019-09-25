@@ -36,7 +36,7 @@ export default {
 			auth,
 		};
 		this.platform = this.$route.params.platform;
-		this.ticker = this.$route.params.asset;
+		this.ticker = this.$route.params.ticker;
 		this.loadDeposit();
 	},
 	methods: {
