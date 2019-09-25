@@ -111,7 +111,6 @@ export default {
 			for (const tokenData of balance.tokens) {
 				const ticker = tokenData.tokenInfo.symbol;
 				if (!(ticker in this.prices)) {
-					console.log(`Price for ${ticker} is not available`);
 					continue;
 				}
 				Vue.set(this.balances, ticker, tokenData.balance);
