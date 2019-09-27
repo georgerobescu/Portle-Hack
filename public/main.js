@@ -8,6 +8,7 @@ import Portfolio from './views/Portfolio.vue';
 import Asset from './views/read/Asset.vue';
 import Deposit from './views/read/Deposit.vue';
 import Loan from './views/read/Loan.vue';
+import Fund from './views/read/Fund.vue';
 
 Vue.use(VueRouter);
 
@@ -17,6 +18,7 @@ const routes = [
 	{ path: '/asset/:ticker', component: Asset },
 	{ path: '/deposit/:platform/:ticker', component: Deposit },
 	{ path: '/loan/:platform/:ticker', component: Loan },
+	{ path: '/fund/:name', component: Fund },
 ];
 
 const router = new VueRouter({
