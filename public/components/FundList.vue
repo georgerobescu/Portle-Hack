@@ -1,6 +1,6 @@
 <template>
 	<div id="list">
-		<div class="card" v-for="fund in funds" v-if="fund.value.gt(0)">
+		<div class="card" v-for="fund in funds" v-if="fund.value.gt(0)" @click="openFund(fund)">
 			<div class="balance">{{ formatBalance(fund.balance) }} {{ fund.name }}</div>
 			<div class="platform">{{ fund.platform }}</div>
 			<div class="details sparse">
@@ -17,6 +17,10 @@ import BigNumber from 'bignumber.js';
 export default {
 	props: [ 'balances', 'fundData', 'ethPrice' ],
 	methods: {
+		openFund(fund) {
+			const path = `/fund/${fund.name}`;
+			this.$router.push(path);
+		},
 		getBalance(platform, fundName) {
 			const balance = this.balances[platform][fundName];
 			const balanceNumber = new BigNumber(balance);
