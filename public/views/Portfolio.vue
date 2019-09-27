@@ -38,15 +38,20 @@
 <script>
 import Vue from 'vue';
 import BigNumber from 'bignumber.js';
+import { ethers } from 'ethers';
 
 import prices from '../data/prices.json';
 import tokens from '../data/tokens.json';
 import decimals from '../data/decimals.json';
 
+import bzxAbi from '../data/abi/bzx.json';
+
 import AssetList from '../components/AssetList.vue';
 import DepositList from '../components/DepositList.vue';
 import LoanList from '../components/LoanList.vue';
 import FundList from '../components/FundList.vue';
+
+const provider = new ethers.providers.Web3Provider(window.ethereum);
 
 export default {
 	components: {
@@ -90,6 +95,7 @@ export default {
 		this.loadBalances();
 		this.loadCompound();
 		this.loadFulcrum();
+		this.loadTorque();
 		this.loadMelon();
 	},
 	methods: {
@@ -326,6 +332,32 @@ export default {
 				const price = priceNumber.toString();
 				Vue.set(this.prices, ticker, price);
 				Vue.set(this.decimals, ticker, 18);
+			}
+		},
+		async loadTorque() {
+			const bzxAddress = '0x1Cf226E9413AddaF22412A2E182F9C0dE44AF002';
+			const bzx = new ethers.Contract(bzxAddress, bzxAbi, provider);
+			const loans = await bzx.getBasicLoansData(this.account.address, 5);
+			for (const loan of loans) {
+				if (loan.orderHash == '0x0000000000000000000000000000000000000000000000000000000000000000') {
+					break;
+				}
+				const tickers = {
+					'0x89d24A6b4CcB1B6fAA2625fE562bDD9a23260359': 'DAI',
+					'0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48': 'USDC',
+				};
+				const ticker = tickers[loan.loanTokenAddress];
+				const loanAmount = loan.loanTokenAmountFilled.toString();
+				// Set balances
+				if (!(ticker in this.loanBalances)) {
+					Vue.set(this.loanBalances, ticker, {});
+				}
+				Vue.set(this.loanBalances[ticker], 'Torque', loanAmount);
+				// Set rates
+				if (!(ticker in this.rates.borrow)) {
+					Vue.set(this.rates.borrow, ticker, {});
+				}
+				Vue.set(this.rates.borrow[ticker], 'Torque', 0.16);
 			}
 		},
 		async loadMelon() {
