@@ -1,6 +1,6 @@
 <template>
 	<div id="list">
-		<div class="card" v-for="loan in loans" v-if="loan.value.gt(0)">
+		<div class="card" v-for="loan in loans" v-if="loan.value.gt(0)" @click="openLoan(loan)">
 			<div class="balance">{{ formatBalance(loan.balance) }} {{ loan.ticker }}</div>
 			<div class="platform">{{ loan.platform }}</div>
 			<div class="details sparse">
@@ -17,6 +17,10 @@ import BigNumber from 'bignumber.js';
 export default {
 	props: [ 'balances', 'rates', 'prices', 'tokens', 'decimals' ],
 	methods: {
+		openLoan(loan) {
+			const path = `/loan/${loan.platform}/${loan.ticker}`;
+			this.$router.push(path);
+		},
 		getBalance(ticker, platform) {
 			const tokenBalances = this.balances[ticker];
 			const balance = tokenBalances[platform];
