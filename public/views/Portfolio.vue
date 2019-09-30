@@ -4,7 +4,7 @@
 			<h2>Assets</h2>
 			<div v-if="account && account.auth">
 				<button onclick="location.href='./send.html';">Send</button>
-				<button onclick="location.href='./swap.html';" style="margin-left: 8px">Swap</button>
+				<button @click="openSwap()" style="margin-left: 8px">Swap</button>
 			</div>
 		</div>
 		<AssetList :balances="balances" :prices="prices" :tokens="tokens" :decimals="decimals" />
@@ -96,6 +96,10 @@ export default {
 		this.loadMelon();
 	},
 	methods: {
+		openSwap() {
+			const path = `/swap`;
+			this.$router.push(path);
+		},
 		async loadBalances() {
 			const url = `https://api.ethplorer.io/getAddressInfo/${this.account.address}?apiKey=freekey`;
 			const response = await fetch(url);
