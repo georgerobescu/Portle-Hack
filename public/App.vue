@@ -175,7 +175,7 @@ input.invalid {
 }
 
 .label-ghost {
-	border-left: 1px solid #d3d3d3;
+	border-left: 1px solid #eeeeee;
 	background: white;
 }
 
@@ -185,6 +185,7 @@ input.invalid {
 
 .max-label {
 	margin-left: 1.25em;
+	font-size: 0.75em;
 	cursor: pointer;
 	color: grey;
 }
@@ -196,12 +197,12 @@ input.invalid {
 .asset-picker {
 	margin-left: 1em;
 	cursor: pointer;
-	border-left: 1px solid #d3d3d3;
+	border-left: 1px solid #eeeeee;
 	padding: 0.5em 1.25em 0.5em 1.25em;
 }
 
 .asset-picker:hover {
-	background: #d3d3d3;
+	background: #eeeeee;
 }
 
 .action-selector {
