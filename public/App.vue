@@ -149,7 +149,7 @@ input.address {
 input.amount {
 	text-align: right;
 	font-family: 'Source Code Mono', monospace;
-	width: 140px;
+	width: 240px;
 }
 
 input.invalid {
@@ -192,17 +192,6 @@ input.invalid {
 
 .max-label:hover {
 	color: #282821;
-}
-
-.asset-picker {
-	margin-left: 1em;
-	cursor: pointer;
-	border-left: 1px solid #eeeeee;
-	padding: 0.5em 1.25em 0.5em 1.25em;
-}
-
-.asset-picker:hover {
-	background: #eeeeee;
 }
 
 .action-selector {
