@@ -23,6 +23,7 @@ const provider = new ethers.providers.Web3Provider(window.ethereum);
 export default {
 	data() {
 		return {
+			account: undefined,
 			platform: '',
 			ticker: '',
 			balance: 0,

@@ -15,6 +15,7 @@ import prices from '../../data/prices.json';
 export default {
 	data() {
 		return {
+			account: undefined,
 			name: '',
 			price: 0,
 			balance: 0,

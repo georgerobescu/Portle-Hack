@@ -2,7 +2,7 @@
 	<div id="view">
 		<div class="header">
 			<h2>Assets</h2>
-			<div v-if="account.auth">
+			<div v-if="account && account.auth">
 				<button onclick="location.href='./send.html';">Send</button>
 				<button onclick="location.href='./swap.html';" style="margin-left: 8px">Swap</button>
 			</div>
@@ -11,7 +11,7 @@
 
 		<div class="header">
 			<h2>Deposits</h2>
-			<div v-if="account.auth">
+			<div v-if="account && account.auth">
 				<button onclick="location.href='./deposit-new.html';">New deposit</button>
 			</div>
 		</div>
@@ -19,7 +19,7 @@
 
 		<div class="header">
 			<h2>Loans</h2>
-			<div v-if="account.auth">
+			<div v-if="account && account.auth">
 				<button onclick="location.href='./loan-new.html';">New loan</button>
 			</div>
 		</div>
@@ -27,7 +27,7 @@
 
 		<div class="header">
 			<h2>Funds</h2>
-			<div v-if="account.auth">
+			<div v-if="account && account.auth">
 				<button onclick="location.href='./fund-new.html';">New investment</button>
 			</div>
 		</div>
@@ -62,10 +62,7 @@ export default {
 	},
 	data() {
 		return {
-			account: {
-				address: '',
-				auth: true,
-			},
+			account: undefined,
 			balances: {},
 			depositBalances: {},
 			loanBalances: {},

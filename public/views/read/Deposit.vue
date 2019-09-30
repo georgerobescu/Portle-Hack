@@ -18,6 +18,7 @@ import decimals from '../../data/decimals.json';
 export default {
 	data() {
 		return {
+			account: undefined,
 			platform: '',
 			ticker: '',
 			balance: 0,
