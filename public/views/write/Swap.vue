@@ -113,6 +113,29 @@ export default {
 			if (this.inputAmount == '0' && this.outputAmount == '0') {
 				return;
 			}
+			const dex = this.getDex();
+			if (dex == 'Kyber') {
+				await this.loadKyberPrice();
+			}
+			this.loading = false;
+		},
+		async swap() {
+			const dex = this.getDex();
+			if (dex == 'Kyber') {
+				await this.swapKyber();
+			}
+		},
+		async checkAllowance(address, amount) {
+			const uintMax = '115792089237316195423570985008687907853269984665640564039457584007913129639935';
+			const account = this.account.address;
+			const inputToken = new ethers.Contract(address, erc20Abi, signer);
+			const inputTokenAllowance = await inputToken.allowance(account, kyberProxyAddress);
+			if (inputTokenAllowance.gte(amount)) {
+				return;
+			}
+			await inputToken.approve(kyberProxyAddress, uintMax);
+		},
+		async loadKyberPrice() {
 			const inputAddress = this.getTokenAddress(this.inputAsset);
 			const outputAddress = this.getTokenAddress(this.outputAsset);
 			const kyberOracle = new ethers.Contract(kyberOracleAddress, kyberOracleAbi, provider);
@@ -125,9 +148,8 @@ export default {
 				const inputAmount = await kyberOracle.getOutputAmount(inputAddress, outputAddress, outputAmount);
 				this.inputAmount = this.toShortAmount(inputAmount, this.inputAsset);
 			}
-			this.loading = false;
 		},
-		async swap() {
+		async swapKyber() {
 			const one = new BigNumber(1);
 			const reverseRate = one.div(this.rate)
 			const reverseRateAfterSlippage = reverseRate.times(one.minus(slippage));
@@ -157,15 +179,26 @@ export default {
 				await kyberProxy.swapTokenToToken(inputAddress, inputAmount, outputAddress, conversionRate);
 			}
 		},
-		async checkAllowance(address, amount) {
-			const uintMax = '115792089237316195423570985008687907853269984665640564039457584007913129639935';
-			const account = this.account.address;
-			const inputToken = new ethers.Contract(address, erc20Abi, signer);
-			const inputTokenAllowance = await inputToken.allowance(account, kyberProxyAddress);
-			if (inputTokenAllowance.gte(amount)) {
-				return;
+		getDex() {
+			const isInputSynth = this.isSynth(this.inputAsset);
+			const isOutputSynth = this.isSynth(this.outputAsset);
+			if (isInputSynth && isOutputSynth) {
+				return 'Synthetix';
 			}
-			await inputToken.approve(kyberProxyAddress, uintMax);
+			if (!isInputSynth && !isOutputSynth) {
+				return 'Kyber';
+			}
+			return 'Bridge';
+		},
+		isSynth(ticker) {
+			const synths = [
+				'sETH',
+				'sBTC',
+				'sUSD',
+				'sEUR',
+				'sGBP',
+			];
+			return synths.includes(ticker);
 		},
 		getTokenAddress(ticker) {
 			if (ticker == 'ETH') {
