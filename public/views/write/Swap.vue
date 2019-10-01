@@ -8,7 +8,7 @@
 					<AssetPicker :ticker="inputAsset" :onSelect="inputTokenSelected" class="inline"/>
 				</span>
 			</div>
-			<span id="swap-direction">
+			<span id="swap-direction" @click="swapPair()">
 				<img :src="chevronDown" class="swap-icon swap-direction">
 			</span>
 			<div>
@@ -140,6 +140,13 @@ export default {
 			if (dex == 'Synthetix') {
 				await this.swapSynthetix();
 			}
+		},
+		async swapPair() {
+			const inputAsset = this.inputAsset;
+			const outputAsset = this.outputAsset;
+			this.inputAsset = outputAsset;
+			this.outputAsset = inputAsset;
+			this.loadPrice();
 		},
 		async checkAllowance(address, amount) {
 			const uintMax = '115792089237316195423570985008687907853269984665640564039457584007913129639935';
