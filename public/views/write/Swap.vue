@@ -13,7 +13,6 @@
 			</span>
 			<div>
 				<span class="input-group">
-					<span class="max-label">MAX</span>
 					<input class="amount" v-model="outputAmount" @input="updateAmount(false)">
 					<AssetPicker :ticker="outputAsset" :onSelect="outputTokenSelected" class="inline"/>
 				</span>
