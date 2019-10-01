@@ -3,7 +3,7 @@
 		<div id="swap-form">
 			<div>
 				<span class="input-group">
-					<span class="max-label">MAX</span>
+					<span class="max-label" @click="setMax()">MAX</span>
 					<input class="amount" v-model="inputAmount" @input="updateAmount(true)">
 					<AssetPicker :ticker="inputAsset" :onSelect="inputTokenSelected" class="inline"/>
 				</span>
@@ -146,6 +146,21 @@ export default {
 			const outputAsset = this.outputAsset;
 			this.inputAsset = outputAsset;
 			this.outputAsset = inputAsset;
+			this.loadPrice();
+		},
+		async setMax() {
+			const account = this.account.address;
+			if (this.inputAsset == 'ETH') {
+				const etherBalance = await provider.getBalance(account);
+				const inputAmount = this.toShortAmount(etherBalance.toString(), this.inputAsset);
+				this.inputAmount = inputAmount;
+			} else {
+				const inputAddress = this.getTokenAddress(this.inputAsset);
+				const inputToken = new ethers.Contract(inputAddress, erc20Abi, signer);
+				const inputTokenBalance = await inputToken.balanceOf(account);
+				const inputAmount = this.toShortAmount(inputTokenBalance.toString(), this.inputAsset);
+				this.inputAmount = inputAmount;
+			}
 			this.loadPrice();
 		},
 		async checkAllowance(address, amount) {
