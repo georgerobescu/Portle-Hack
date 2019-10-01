@@ -156,7 +156,7 @@ export default {
 				this.inputAmount = inputAmount;
 			} else {
 				const inputAddress = this.getTokenAddress(this.inputAsset);
-				const inputToken = new ethers.Contract(inputAddress, erc20Abi, signer);
+				const inputToken = new ethers.Contract(inputAddress, erc20Abi, provider);
 				const inputTokenBalance = await inputToken.balanceOf(account);
 				const inputAmount = this.toShortAmount(inputTokenBalance.toString(), this.inputAsset);
 				this.inputAmount = inputAmount;
@@ -166,7 +166,7 @@ export default {
 		async checkAllowance(address, amount) {
 			const uintMax = '115792089237316195423570985008687907853269984665640564039457584007913129639935';
 			const account = this.account.address;
-			const inputToken = new ethers.Contract(address, erc20Abi, signer);
+			const inputToken = new ethers.Contract(address, erc20Abi, provider);
 			const inputTokenAllowance = await inputToken.allowance(account, kyberProxyAddress);
 			if (inputTokenAllowance.gte(amount)) {
 				return;
