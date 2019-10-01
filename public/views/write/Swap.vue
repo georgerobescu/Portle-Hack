@@ -50,8 +50,8 @@ import addresses from '../../data/addresses.json';
 
 import chevronDown from '../../../assets/chevron-down.svg';
 
-const kyberOracleAddress = '0x88Ad124C9C9C0d4Ce4AD7F61b2f702708c2FEe41';
-const kyberProxyAddress = '0x692f391bCc85cefCe8C237C01e1f636BbD70EA4D';
+const kyberOracleAddress = '0xFd9304Db24009694c680885e6aa0166C639727D6';
+const kyberProxyAddress = '0x818e6fecd516ecc3849daf6845e3ec868087b755';
 const provider = new ethers.providers.Web3Provider(window.ethereum);
 const signer = provider.getSigner();
 
@@ -113,8 +113,8 @@ export default {
 			if (this.inputAmount == '0' && this.outputAmount == '0') {
 				return;
 			}
-			const inputAddress = addresses['Kyber'][this.inputAsset];
-			const outputAddress = addresses['Kyber'][this.outputAsset];
+			const inputAddress = this.getTokenAddress(this.inputAsset);
+			const outputAddress = this.getTokenAddress(this.outputAsset);
 			const kyberOracle = new ethers.Contract(kyberOracleAddress, kyberOracleAbi, provider);
 			if (this.isLastChangedInput) {
 				const inputAmount = this.toLongAmount(this.inputAmount, this.inputAsset);
@@ -135,7 +135,7 @@ export default {
 			const kyberProxy = new ethers.Contract(kyberProxyAddress, kyberProxyAbi, signer);
 			if (this.inputAsset == 'ETH') {
 				// Eth to token
-				const outputAddress = addresses['Kyber'][this.outputAsset];
+				const outputAddress = this.getTokenAddress(this.outputAsset);
 				const value = this.toLongAmount(this.inputAmount, 'ETH');
 				const valueNumber = new BigNumber(value);
 				const options = {
@@ -144,15 +144,15 @@ export default {
 				await kyberProxy.swapEtherToToken(outputAddress, conversionRate, options);
 			} else if (this.outputAsset == 'ETH') {
 				// Token to eth
-				const inputAddress = addresses['Kyber'][this.inputAsset];
+				const inputAddress = this.getTokenAddress(this.inputAsset);
 				const inputAmount = this.toLongAmount(this.inputAmount, this.inputAsset);
 				await this.checkAllowance(inputAddress, inputAmount);
 				await kyberProxy.swapTokenToEther(inputAddress, inputAmount, conversionRate);
 			} else {
 				// Token to token
-				const inputAddress = addresses['Kyber'][this.inputAsset];
+				const inputAddress = this.getTokenAddress(this.inputAsset);
 				const inputAmount = this.toLongAmount(this.inputAmount, this.inputAsset);
-				const outputAddress = addresses['Kyber'][this.outputAsset];
+				const outputAddress = this.getTokenAddress(this.outputAsset);
 				await this.checkAllowance(inputAddress, inputAmount);
 				await kyberProxy.swapTokenToToken(inputAddress, inputAmount, outputAddress, conversionRate);
 			}
@@ -166,6 +166,12 @@ export default {
 				return;
 			}
 			await inputToken.approve(kyberProxyAddress, uintMax);
+		},
+		getTokenAddress(ticker) {
+			if (ticker == 'ETH') {
+				return '0xEeeeeEeeeEeEeeEeEeEeeEEEeeeeEeeeeeeeEEeE';
+			}
+			return addresses[ticker];
 		},
 		toShortAmount(amount, ticker) {
 			const ten = new BigNumber(10);
