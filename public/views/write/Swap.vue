@@ -4,8 +4,8 @@
 			<div>
 				<span class="input-group">
 					<span class="max-label">MAX</span>
-					<input class="amount" value="1000" placeholder="0">
-					<AssetPicker :startTicker="'DAI'" :onSelect="inputTokenSelected" class="inline"/>
+					<input class="amount" v-model="inputAmount" @input="updateAmount(true)">
+					<AssetPicker :startTicker="inputAsset" :onSelect="inputTokenSelected" class="inline"/>
 				</span>
 			</div>
 			<span id="swap-direction">
@@ -14,21 +14,16 @@
 			<div>
 				<span class="input-group">
 					<span class="max-label">MAX</span>
-					<input class="amount" value="5.5175" placeholder="0">
-					<AssetPicker :startTicker="'ETH'" :onSelect="outputTokenSelected" class="inline"/>
+					<input class="amount" v-model="outputAmount" @input="updateAmount(false)">
+					<AssetPicker :startTicker="outputAsset" :onSelect="outputTokenSelected" class="inline"/>
 				</span>
 			</div>
 		</div>
 		<div style="margin-top: 2em;">
-			Rate: 1 ETH = 181.243 DAI
+			Rate: 1 {{ outputAsset }} = {{ formatRate(rate) }} {{ inputAsset }}
 		</div>
 		<div style="margin-top: 2em">
-			<span class="badge badge-info">
-				You are selling 1000 DAI to get at least 5.508 ETH.
-			</span>
-			<!-- <span class="badge badge-info">
-				You are buying 5.5 DAI to spend no more than 1008 DAI.
-			</span> -->
+			<span class="badge badge-info">{{ message }}</span>
 		</div>
 		<!-- <div style="margin-top: 2em">
 			<span class="badge badge-danger">
@@ -36,29 +31,187 @@
 			</span>
 		</div> -->
 		<div style="margin-top: 1em">
-			<button class="primary big">Swap</button>
+			<button class="primary big" @click="swap()">Swap</button>
 		</div>
 	</div>
 </template>
 
 <script>
+import BigNumber from 'bignumber.js';
+import { ethers } from 'ethers';
+
 import AssetPicker from '../../components/AssetPicker.vue';
 
+import erc20Abi from '../../data/abi/erc20.json';
+import kyberOracleAbi from '../../data/abi/kyberOracle.json';
+import kyberProxyAbi from '../../data/abi/kyberProxy.json';
+import decimals from '../../data/decimals.json';
+import addresses from '../../data/addresses.json';
+
 import chevronDown from '../../../assets/chevron-down.svg';
+
+const kyberOracleAddress = '0x88Ad124C9C9C0d4Ce4AD7F61b2f702708c2FEe41';
+const kyberProxyAddress = '0x692f391bCc85cefCe8C237C01e1f636BbD70EA4D';
+const provider = new ethers.providers.Web3Provider(window.ethereum);
+const signer = provider.getSigner();
+
+const slippage = 0.01;
 
 export default {
 	components: {
 		AssetPicker,
 	},
+	data() {
+		return {
+			account: undefined,
+			inputAsset: 'ETH',
+			outputAsset: 'DAI',
+			inputAmount: '1',
+			outputAmount: '…',
+			isLastChangedInput: true,
+			loading: false,
+		}
+	},
+	mounted() {
+		const address = localStorage.getItem('address');
+		const auth = localStorage.getItem('auth') == 'true';
+		if (!address || !auth) {
+			this.$router.push('/login');
+			return;
+		}
+		this.account = {
+			address,
+			auth,
+		};
+		this.load();
+	},
 	methods: {
+		updateAmount(isChangedInput) {
+			this.isLastChangedInput = isChangedInput;
+			this.load();
+		},
 		inputTokenSelected(ticker) {
+			this.inputAsset = ticker;
+			if (this.isLastChangedInput) {
+				this.outputAmount = '…';
+			} else {
+				this.inputAmount = '…';
+			}
+			this.load();
 		},
 		outputTokenSelected(ticker) {
+			this.outputAsset = ticker;
+			if (this.isLastChangedInput) {
+				this.outputAmount = '…';
+			} else {
+				this.inputAmount = '…';
+			}
+			this.load();
+		},
+		async load() {
+			this.loading = true;
+			if (this.inputAmount == '0' && this.outputAmount == '0') {
+				return;
+			}
+			const inputAddress = addresses['Kyber'][this.inputAsset];
+			const outputAddress = addresses['Kyber'][this.outputAsset];
+			const kyberOracle = new ethers.Contract(kyberOracleAddress, kyberOracleAbi, provider);
+			if (this.isLastChangedInput) {
+				const inputAmount = this.toLongAmount(this.inputAmount, this.inputAsset);
+				const outputAmount = await kyberOracle.getOutputAmount(inputAddress, outputAddress, inputAmount);
+				this.outputAmount = this.toShortAmount(outputAmount, this.outputAsset);
+			} else {
+				const outputAmount = this.toLongAmount(this.outputAmount, this.outputAsset);
+				const inputAmount = await kyberOracle.getOutputAmount(inputAddress, outputAddress, outputAmount);
+				this.inputAmount = this.toShortAmount(inputAmount, this.inputAsset);
+			}
+			this.loading = false;
+		},
+		async swap() {
+			const one = new BigNumber(1);
+			const reverseRate = one.div(this.rate)
+			const reverseRateAfterSlippage = reverseRate.times(one.minus(slippage));
+			const conversionRate = this.toLongAmount(reverseRateAfterSlippage, 'ETH');
+			const kyberProxy = new ethers.Contract(kyberProxyAddress, kyberProxyAbi, signer);
+			if (this.inputAsset == 'ETH') {
+				// Eth to token
+				const outputAddress = addresses['Kyber'][this.outputAsset];
+				const value = this.toLongAmount(this.inputAmount, 'ETH');
+				const valueNumber = new BigNumber(value);
+				const options = {
+					value: '0x' + valueNumber.toString(16),
+				};
+				await kyberProxy.swapEtherToToken(outputAddress, conversionRate, options);
+			} else if (this.outputAsset == 'ETH') {
+				// Token to eth
+				const inputAddress = addresses['Kyber'][this.inputAsset];
+				const inputAmount = this.toLongAmount(this.inputAmount, this.inputAsset);
+				await this.checkAllowance(inputAddress, inputAmount);
+				await kyberProxy.swapTokenToEther(inputAddress, inputAmount, conversionRate);
+			} else {
+				// Token to token
+				const inputAddress = addresses['Kyber'][this.inputAsset];
+				const inputAmount = this.toLongAmount(this.inputAmount, this.inputAsset);
+				const outputAddress = addresses['Kyber'][this.outputAsset];
+				await this.checkAllowance(inputAddress, inputAmount);
+				await kyberProxy.swapTokenToToken(inputAddress, inputAmount, outputAddress, conversionRate);
+			}
+		},
+		async checkAllowance(address, amount) {
+			const uintMax = '115792089237316195423570985008687907853269984665640564039457584007913129639935';
+			const account = this.account.address;
+			const inputToken = new ethers.Contract(address, erc20Abi, signer);
+			const inputTokenAllowance = await inputToken.allowance(account, kyberProxyAddress);
+			if (inputTokenAllowance.gte(amount)) {
+				return;
+			}
+			await inputToken.approve(kyberProxyAddress, uintMax);
+		},
+		toShortAmount(amount, ticker) {
+			const ten = new BigNumber(10);
+			const tickerDecimals = decimals[ticker];
+			const multiplier = ten.pow(tickerDecimals);
+			const amountNumber = new BigNumber(amount);
+			const shortAmountNumber = amountNumber.div(multiplier);
+			const shortAmount = shortAmountNumber.toString();
+			return shortAmount;
+		},
+		toLongAmount(amount, ticker) {
+			const ten = new BigNumber(10);
+			const tickerDecimals = decimals[ticker];
+			const multiplier = ten.pow(tickerDecimals);
+			const amountNumber = new BigNumber(amount);
+			const longAmountNumber = amountNumber.times(multiplier);
+			const longAmount = longAmountNumber.toFixed(0);
+			return longAmount;
+		},
+		formatRate(rate) {
+			return rate.toFixed(4);
 		},
 	},
 	computed: {
 		chevronDown() {
 			return chevronDown;
+		},
+		rate() {
+			if (this.outputAmount == '0') {
+				return new BigNumber(0);
+			}
+			const inputAmount = new BigNumber(this.inputAmount);
+			const outputAmount = new BigNumber(this.outputAmount);
+			return inputAmount.div(outputAmount);
+		},
+		message() {
+			const one = new BigNumber(1);
+			if (this.isLastChangedInput) {
+				const outputAmount = new BigNumber(this.outputAmount);
+				const outputAmountAfterSlippage = outputAmount.times(one.minus(slippage));
+				return `Selling ${this.inputAmount} ${this.inputAsset} to get at least ${outputAmountAfterSlippage} ${this.outputAsset}`;
+			} else {
+				const inputAmount = new BigNumber(this.inputAmount);
+				const inputAmountAfterSlippage = inputAmount.times(one.plus(slippage));
+				return `Buying ${this.outputAmount} ${this.outputAsset} to spend no more than ${inputAmountAfterSlippage} ${this.inputAsset}`;
+			}
 		},
 	},
 }
