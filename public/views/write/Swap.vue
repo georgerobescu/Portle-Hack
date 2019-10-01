@@ -72,7 +72,7 @@ export default {
 			inputAsset: 'ETH',
 			outputAsset: 'DAI',
 			inputAmount: '1',
-			outputAmount: '…',
+			outputAmount: '0',
 			isLastChangedInput: true,
 			loading: false,
 		}
@@ -117,6 +117,11 @@ export default {
 			this.loading = true;
 			if (this.inputAmount == '0' && this.outputAmount == '0') {
 				return;
+			}
+			if (this.isLastChangedInput) {
+				this.outputAmount = '…';
+			} else {
+				this.inputAmount = '…';
 			}
 			const dex = this.getDex();
 			if (dex == 'Kyber') {
@@ -251,7 +256,7 @@ export default {
 			const multiplier = ten.pow(tickerDecimals);
 			const amountNumber = new BigNumber(amount);
 			const shortAmountNumber = amountNumber.div(multiplier);
-			const shortAmount = shortAmountNumber.toString();
+			const shortAmount = shortAmountNumber.toFixed(6);
 			return shortAmount;
 		},
 		toLongAmount(amount, ticker) {
@@ -264,6 +269,9 @@ export default {
 			return longAmount;
 		},
 		formatRate(rate) {
+			if (this.loading) {
+				return '…';
+			}
 			return rate.toFixed(4);
 		},
 	},
@@ -272,22 +280,25 @@ export default {
 			return chevronDown;
 		},
 		rate() {
-			if (this.outputAmount == '0') {
+			if (this.outputAmount == '…') {
 				return new BigNumber(0);
 			}
 			const inputAmount = new BigNumber(this.inputAmount);
 			const outputAmount = new BigNumber(this.outputAmount);
+			if (outputAmount.isZero()) {
+				return new BigNumber(0);
+			}
 			return inputAmount.div(outputAmount);
 		},
 		message() {
 			const one = new BigNumber(1);
 			if (this.isLastChangedInput) {
 				const outputAmount = new BigNumber(this.outputAmount);
-				const outputAmountAfterSlippage = outputAmount.times(one.minus(slippage));
+				const outputAmountAfterSlippage = outputAmount.times(one.minus(slippage)).toFixed(6);
 				return `Selling ${this.inputAmount} ${this.inputAsset} to get at least ${outputAmountAfterSlippage} ${this.outputAsset}`;
 			} else {
 				const inputAmount = new BigNumber(this.inputAmount);
-				const inputAmountAfterSlippage = inputAmount.times(one.plus(slippage));
+				const inputAmountAfterSlippage = inputAmount.times(one.plus(slippage)).toFixed(6);
 				return `Buying ${this.outputAmount} ${this.outputAsset} to spend no more than ${inputAmountAfterSlippage} ${this.inputAsset}`;
 			}
 		},
