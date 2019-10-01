@@ -83,12 +83,12 @@ export default {
 			address,
 			auth,
 		};
-		this.load();
+		this.loadPrice();
 	},
 	methods: {
 		updateAmount(isChangedInput) {
 			this.isLastChangedInput = isChangedInput;
-			this.load();
+			this.loadPrice();
 		},
 		inputTokenSelected(ticker) {
 			this.inputAsset = ticker;
@@ -97,7 +97,7 @@ export default {
 			} else {
 				this.inputAmount = '…';
 			}
-			this.load();
+			this.loadPrice();
 		},
 		outputTokenSelected(ticker) {
 			this.outputAsset = ticker;
@@ -106,9 +106,9 @@ export default {
 			} else {
 				this.inputAmount = '…';
 			}
-			this.load();
+			this.loadPrice();
 		},
-		async load() {
+		async loadPrice() {
 			this.loading = true;
 			if (this.inputAmount == '0' && this.outputAmount == '0') {
 				return;
