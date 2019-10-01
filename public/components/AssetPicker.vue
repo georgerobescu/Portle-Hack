@@ -24,22 +24,17 @@ import chevronUp from '../../assets/chevron-up.svg';
 import chevronDown from '../../assets/chevron-down.svg';
 
 export default {
-	props: ['startTicker', 'onSelect'],
+	props: ['ticker', 'onSelect'],
 	data() {
 		return {
-			'ticker': '',
 			'modal': false,
 		}
-	},
-	mounted() {
-		this.ticker = this.startTicker;
 	},
 	methods: {
 		toggle() {
 			this.modal = !this.modal;
 		},
 		select(ticker) {
-			this.ticker = ticker;
 			this.modal = false;
 			this.onSelect(ticker);
 		},

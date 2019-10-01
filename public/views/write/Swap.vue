@@ -5,7 +5,7 @@
 				<span class="input-group">
 					<span class="max-label">MAX</span>
 					<input class="amount" v-model="inputAmount" @input="updateAmount(true)">
-					<AssetPicker :startTicker="inputAsset" :onSelect="inputTokenSelected" class="inline"/>
+					<AssetPicker :ticker="inputAsset" :onSelect="inputTokenSelected" class="inline"/>
 				</span>
 			</div>
 			<span id="swap-direction">
@@ -15,7 +15,7 @@
 				<span class="input-group">
 					<span class="max-label">MAX</span>
 					<input class="amount" v-model="outputAmount" @input="updateAmount(false)">
-					<AssetPicker :startTicker="outputAsset" :onSelect="outputTokenSelected" class="inline"/>
+					<AssetPicker :ticker="outputAsset" :onSelect="outputTokenSelected" class="inline"/>
 				</span>
 			</div>
 		</div>
