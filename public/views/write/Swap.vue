@@ -8,8 +8,8 @@
 					<AssetPicker :ticker="inputAsset" :onSelect="inputTokenSelected" class="inline"/>
 				</span>
 			</div>
-			<span id="swap-direction" @click="swapPair()">
-				<img :src="chevronDown" class="swap-icon swap-direction">
+			<span id="swap-direction">
+				<img @click="swapPair()" :src="chevronDown" class="swap-icon swap-direction">
 			</span>
 			<div>
 				<span class="input-group">
