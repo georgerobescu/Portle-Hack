@@ -335,7 +335,7 @@ export default {
 
 #swap-direction {
 	margin: 16px 0 16px 0;
-	width: 556px;
+	width: 507px;
 	display: flex;
 	align-items: center;
 	justify-content: center;
