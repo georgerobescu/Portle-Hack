@@ -283,4 +283,9 @@ input.invalid {
 .badge-danger {
 	background: #eedfbd;
 }
+
+.hidden {
+	opacity: 0;
+	cursor: inherit;
+}
 </style>
