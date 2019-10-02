@@ -32,6 +32,7 @@
 		<div style="margin-top: 1em">
 			<button class="primary big" @click="swap()">Swap</button>
 		</div>
+		<TxStatus :status="txStatus" :onHidden="hideStatus"/>
 	</div>
 </template>
 
@@ -40,6 +41,7 @@ import BigNumber from 'bignumber.js';
 import { ethers } from 'ethers';
 
 import AssetPicker from '../../components/AssetPicker.vue';
+import TxStatus from '../../components/TxStatus.vue';
 
 import erc20Abi from '../../data/abi/erc20.json';
 import kyberOracleAbi from '../../data/abi/kyberOracle.json';
@@ -64,6 +66,7 @@ const slippage = 0.01;
 export default {
 	components: {
 		AssetPicker,
+		TxStatus,
 	},
 	data() {
 		return {
@@ -74,6 +77,7 @@ export default {
 			outputAmount: '0',
 			isLastChangedInput: true,
 			loading: false,
+			txStatus: 'none',
 		}
 	},
 	mounted() {
@@ -162,6 +166,9 @@ export default {
 			}
 			this.loadPrice();
 		},
+		async hideStatus() {
+			this.txStatus = 'none';
+		},
 		async checkAllowance(address, amount) {
 			const uintMax = '115792089237316195423570985008687907853269984665640564039457584007913129639935';
 			const account = this.account.address;
@@ -170,7 +177,18 @@ export default {
 			if (inputTokenAllowance.gte(amount)) {
 				return;
 			}
-			await inputToken.approve(kyberProxyAddress, uintMax);
+			try {
+				this.txStatus = 'mining';
+				const tx = await inputToken.approve(kyberProxyAddress, uintMax);
+				const txReceipt = await provider.getTransactionReceipt(tx.hash);
+				if (txReceipt.status == 1) {
+					this.txStatus = 'success';
+				} else {
+					this.txStatus = 'failure';
+				}
+			} catch(e) {
+				this.txStatus = 'rejected';
+			}
 		},
 		async loadKyberPrice() {
 			const inputAddress = this.getTokenAddress(this.inputAsset);
@@ -219,20 +237,53 @@ export default {
 				const options = {
 					value: '0x' + valueNumber.toString(16),
 				};
-				await kyberProxy.swapEtherToToken(outputAddress, conversionRate, options);
+				try {
+					this.txStatus = 'mining';
+					const tx = await kyberProxy.swapEtherToToken(outputAddress, conversionRate, options);
+					const txReceipt = await provider.getTransactionReceipt(tx.hash);
+					if (txReceipt.status == 1) {
+						this.txStatus = 'success';
+					} else {
+						this.txStatus = 'failure';
+					}
+				} catch(e) {
+					this.txStatus = 'rejected';
+				}
 			} else if (this.outputAsset == 'ETH') {
 				// Token to eth
 				const inputAddress = this.getTokenAddress(this.inputAsset);
 				const inputAmount = this.toLongAmount(this.inputAmount, this.inputAsset);
 				await this.checkAllowance(inputAddress, inputAmount);
-				await kyberProxy.swapTokenToEther(inputAddress, inputAmount, conversionRate);
+				try {
+					this.txStatus = 'mining';
+					const tx = await kyberProxy.swapTokenToEther(inputAddress, inputAmount, conversionRate);
+					const txReceipt = await provider.getTransactionReceipt(tx.hash);
+					if (txReceipt.status == 1) {
+						this.txStatus = 'success';
+					} else {
+						this.txStatus = 'failure';
+					}
+				} catch(e) {
+					this.txStatus = 'rejected';
+				}
 			} else {
 				// Token to token
 				const inputAddress = this.getTokenAddress(this.inputAsset);
 				const inputAmount = this.toLongAmount(this.inputAmount, this.inputAsset);
 				const outputAddress = this.getTokenAddress(this.outputAsset);
 				await this.checkAllowance(inputAddress, inputAmount);
-				await kyberProxy.swapTokenToToken(inputAddress, inputAmount, outputAddress, conversionRate);
+				try {
+					this.txStatus = 'mining';
+					const tx = await kyberProxy.swapTokenToToken(inputAddress, inputAmount, outputAddress, conversionRate);
+					const txReceipt = await provider.getTransactionReceipt(tx.hash);
+					if (txReceipt.status == 1) {
+						this.txStatus = 'success';
+					} else {
+						this.txStatus = 'failure';
+					}
+				} catch(e) {
+					this.txStatus = 'rejected';
+				}
 			}
 		},
 		async swapSynthetix() {
@@ -242,7 +293,18 @@ export default {
 			const inputAmount = this.toLongAmount(this.inputAmount, this.inputAsset);
 			const synthetix = new ethers.Contract(synthetixAddress, synthetixAbi, signer);
 			await this.checkAllowance(inputAddress, inputAmount);
-			await synthetix.exchange(inputCurrencyCode, inputAmount, outputCurrencyCode, this.account.address);
+			try {
+				this.txStatus = 'mining';
+				const tx = await synthetix.exchange(inputCurrencyCode, inputAmount, outputCurrencyCode, this.account.address);
+				const txReceipt = await provider.getTransactionReceipt(tx.hash);
+				if (txReceipt.status == 1) {
+					this.txStatus = 'success';
+				} else {
+					this.txStatus = 'failure';
+				}
+			} catch(e) {
+				this.txStatus = 'rejected';
+			}
 		},
 		getDex() {
 			const isInputSynth = this.isSynth(this.inputAsset);
