@@ -170,17 +170,17 @@ export default {
 		async hideStatus() {
 			this.txStatus = 'none';
 		},
-		async checkAllowance(address, amount) {
+		async checkAllowance(spender, address, amount) {
 			const uintMax = '115792089237316195423570985008687907853269984665640564039457584007913129639935';
 			const account = this.account.address;
 			const inputToken = new ethers.Contract(address, erc20Abi, signer);
-			const inputTokenAllowance = await inputToken.allowance(account, kyberProxyAddress);
+			const inputTokenAllowance = await inputToken.allowance(account, spender);
 			if (inputTokenAllowance.gte(amount)) {
 				return;
 			}
 			try {
 				this.txStatus = 'mining';
-				const tx = await inputToken.approve(kyberProxyAddress, uintMax);
+				const tx = await inputToken.approve(spender, uintMax);
 				const txReceipt = await provider.getTransactionReceipt(tx.hash);
 				if (txReceipt.status == 1) {
 					this.txStatus = 'success';
@@ -254,7 +254,7 @@ export default {
 				// Token to eth
 				const inputAddress = this.getTokenAddress(this.inputAsset);
 				const inputAmount = this.toLongAmount(this.inputAmount, this.inputAsset);
-				await this.checkAllowance(inputAddress, inputAmount);
+				await this.checkAllowance(kyberProxyAddress, inputAddress, inputAmount);
 				try {
 					this.txStatus = 'mining';
 					const tx = await kyberProxy.swapTokenToEther(inputAddress, inputAmount, conversionRate);
@@ -272,7 +272,7 @@ export default {
 				const inputAddress = this.getTokenAddress(this.inputAsset);
 				const inputAmount = this.toLongAmount(this.inputAmount, this.inputAsset);
 				const outputAddress = this.getTokenAddress(this.outputAsset);
-				await this.checkAllowance(inputAddress, inputAmount);
+				await this.checkAllowance(kyberProxyAddress, inputAddress, inputAmount);
 				try {
 					this.txStatus = 'mining';
 					const tx = await kyberProxy.swapTokenToToken(inputAddress, inputAmount, outputAddress, conversionRate);
@@ -293,7 +293,7 @@ export default {
 			const inputAddress = this.getTokenAddress(this.inputAsset);
 			const inputAmount = this.toLongAmount(this.inputAmount, this.inputAsset);
 			const synthetix = new ethers.Contract(synthetixAddress, synthetixAbi, signer);
-			await this.checkAllowance(inputAddress, inputAmount);
+			await this.checkAllowance(synthetixAddress, inputAddress, inputAmount);
 			try {
 				this.txStatus = 'mining';
 				const tx = await synthetix.exchange(inputCurrencyCode, inputAmount, outputCurrencyCode, this.account.address);
