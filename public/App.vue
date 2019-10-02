@@ -187,8 +187,6 @@ input.invalid {
 }
 
 .max-label {
-	position: absolute;
-	margin-top: 1em;
 	margin-left: 1.25em;
 	font-size: 0.75em;
 	cursor: pointer;
