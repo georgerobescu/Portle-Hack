@@ -200,7 +200,7 @@ export default {
 				this.outputAmount = this.toShortAmount(outputAmount, this.outputAsset);
 			} else {
 				const outputAmount = this.toLongAmount(this.outputAmount, this.outputAsset);
-				const inputAmount = await kyberOracle.getOutputAmount(inputAddress, outputAddress, outputAmount);
+				const inputAmount = await kyberOracle.getInputAmount(inputAddress, outputAddress, outputAmount);
 				this.inputAmount = this.toShortAmount(inputAmount, this.inputAsset);
 			}
 		},
