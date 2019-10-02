@@ -1,7 +1,7 @@
 <template>
 	<div>
 		<header v-if="showNavigation()">
-			<div style="display: flex; align-items: center;">
+			<div style="display: flex; align-items: center;" @click="openHomePage()">
 				<img src="../assets/logo.svg" height="32px">
 				<h1 id="title" style="margin-left: 0.5em; cursor: default;">Portle</h1>
 			</div>
@@ -30,6 +30,9 @@ export default {
 				return false;
 			}
 			return true;
+		},
+		openHomePage() {
+			this.$router.push('/');
 		},
 		logout() {
 			localStorage.removeItem('address');
