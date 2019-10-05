@@ -242,7 +242,7 @@ export default {
 			const multiplier = ten.pow(tickerDecimals);
 			const amountNumber = new BigNumber(amount);
 			const shortAmountNumber = amountNumber.div(multiplier);
-			const shortAmount = shortAmountNumber.toFixed(6);
+			const shortAmount = shortAmountNumber.toString();
 			return shortAmount;
 		},
 		toLongAmount(amount, ticker) {
