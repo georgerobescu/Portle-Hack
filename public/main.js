@@ -12,6 +12,7 @@ import Loan from './views/read/Loan.vue';
 import Fund from './views/read/Fund.vue';
 
 import Swap from './views/write/Swap.vue';
+import NewDeposit from './views/write/NewDeposit.vue';
 
 Vue.use(VueRouter);
 
@@ -25,6 +26,7 @@ const routes = [
 	{ path: '/fund/:name', component: Fund },
 
 	{ path: '/swap', component: Swap },
+	{ path: '/deposit/new', component: NewDeposit },
 ];
 
 const router = new VueRouter({
