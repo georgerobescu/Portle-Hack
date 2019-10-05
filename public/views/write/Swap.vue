@@ -4,7 +4,7 @@
 			<div>
 				<span class="input-group">
 					<span class="max-label" @click="setMax()">MAX</span>
-					<input class="amount" v-model="inputAmount" @input="updateAmount(true)">
+					<input class="amount" :value="formatValue(inputAmount, true)" @input="updateAmount($event, true)">
 					<AssetPicker :ticker="inputAsset" :onSelect="inputTokenSelected" class="inline"/>
 				</span>
 			</div>
@@ -14,7 +14,7 @@
 			<div>
 				<span class="input-group">
 					<span class="max-label hidden">MAX</span>
-					<input class="amount" v-model="outputAmount" @input="updateAmount(false)">
+					<input class="amount" :value="formatValue(outputAmount, false)" @input="updateAmount($event, false)">
 					<AssetPicker :ticker="outputAsset" :onSelect="outputTokenSelected" class="inline"/>
 				</span>
 			</div>
@@ -95,37 +95,28 @@ export default {
 		this.loadPrice();
 	},
 	methods: {
-		updateAmount(isChangedInput) {
+		updateAmount(event, isChangedInput) {
+			const value = event.target.value;
+			if (isChangedInput) {
+				this.inputAmount = value;
+			} else {
+				this.outputAmount = value;
+			}
 			this.isLastChangedInput = isChangedInput;
 			this.loadPrice();
 		},
 		inputTokenSelected(ticker) {
 			this.inputAsset = ticker;
-			if (this.isLastChangedInput) {
-				this.outputAmount = '…';
-			} else {
-				this.inputAmount = '…';
-			}
 			this.loadPrice();
 		},
 		outputTokenSelected(ticker) {
 			this.outputAsset = ticker;
-			if (this.isLastChangedInput) {
-				this.outputAmount = '…';
-			} else {
-				this.inputAmount = '…';
-			}
 			this.loadPrice();
 		},
 		async loadPrice() {
 			this.loading = true;
 			if (this.inputAmount == '0' && this.outputAmount == '0') {
 				return;
-			}
-			if (this.isLastChangedInput) {
-				this.outputAmount = '…';
-			} else {
-				this.inputAmount = '…';
 			}
 			const dex = this.getDex();
 			if (dex == 'Kyber') {
@@ -340,7 +331,7 @@ export default {
 			const multiplier = ten.pow(tickerDecimals);
 			const amountNumber = new BigNumber(amount);
 			const shortAmountNumber = amountNumber.div(multiplier);
-			const shortAmount = shortAmountNumber.toFixed(6);
+			const shortAmount = shortAmountNumber.toString();
 			return shortAmount;
 		},
 		toLongAmount(amount, ticker) {
@@ -357,6 +348,16 @@ export default {
 				return '…';
 			}
 			return rate.toFixed(4);
+		},
+		formatValue(valueString, isInput) {
+			if (this.isLastChangedInput == isInput) {
+				return valueString;
+			}
+			if (this.loading) {
+				return '…';
+			}
+			const value = new BigNumber(valueString);
+			return value.toFixed(6);
 		},
 	},
 	computed: {
