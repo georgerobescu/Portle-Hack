@@ -12,7 +12,7 @@
 		<div class="header">
 			<h2>Deposits</h2>
 			<div v-if="account && account.auth">
-				<button onclick="location.href='./deposit-new.html';">New deposit</button>
+				<button @click="openNewDeposit()">New deposit</button>
 			</div>
 		</div>
 		<DepositList :balances="depositBalances" :rates="rates" :prices="prices" :tokens="tokens" :decimals="decimals" />
@@ -98,6 +98,10 @@ export default {
 	methods: {
 		openSwap() {
 			const path = `/swap`;
+			this.$router.push(path);
+		},
+		openNewDeposit() {
+			const path = '/deposit/new';
 			this.$router.push(path);
 		},
 		async loadBalances() {
