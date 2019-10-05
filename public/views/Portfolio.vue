@@ -20,7 +20,7 @@
 		<div class="header">
 			<h2>Loans</h2>
 			<div v-if="account && account.auth">
-				<button onclick="location.href='./loan-new.html';">New loan</button>
+				<button @click="openNewLoan()">New loan</button>
 			</div>
 		</div>
 		<LoanList :balances="loanBalances" :rates="rates" :prices="prices" :tokens="tokens" :decimals="decimals" />
@@ -102,6 +102,10 @@ export default {
 		},
 		openNewDeposit() {
 			const path = '/deposit/new';
+			this.$router.push(path);
+		},
+		openNewLoan() {
+			const path = '/loan/new';
 			this.$router.push(path);
 		},
 		async loadBalances() {
