@@ -1,6 +1,6 @@
 <template>
-	<div>
-		<div class="picker" @click="toggle()" @blur="hide()" tabindex="0">
+	<div id="asset-picker" @blur="hide()" tabindex="0">
+		<div class="picker" @click="toggle()">
 			<div class="container">
 				<div class="asset">
 					<span>{{ ticker }}</span>
@@ -59,6 +59,10 @@ export default {
 </script>
 
 <style scoped>
+#asset-picker:focus {
+	outline: none;
+}
+
 .picker {
 	width: 210px;
 	display: inline-block;
@@ -70,10 +74,6 @@ export default {
 
 .picker:hover {
 	background: #eeeeee;
-}
-
-.picker:focus {
-	outline: none;
 }
 
 .container {
