@@ -16,20 +16,25 @@
 				</div>
 			</div>
 		</div>
-		<div style="margin-top: 2em">
+		<div id="action-selector-wrapper">
+			<span class="action-selector" @click="selectAction('deposit')" :class="{ 'selected': action == 'deposit' }">Deposit</span>
+			<span class="action-selector" @click="selectAction('withdraw')" :class="{ 'selected': action == 'withdraw' }">Withdraw</span>
+		</div>
+		<div id="amount-wrapper">
 			<span class="input-group">
 				<span class="max-label" @click="setMax()">MAX</span>
 				<input class="amount" v-model="assetAmount">
 				<span class="label label-ghost label-right inline">{{ assetTicker }}</span>
 			</span>
 		</div>
-		<div style="margin-top: 2em">
+		<!-- <div style="margin-top: 2em">
 			<span class="badge badge-info">
 				You are depositing {{ assetAmount }} {{ assetTicker }} to {{ platformName }}.
 			</span>
-		</div>
+		</div> -->
 		<div style="margin-top: 1em">
-			<button class="primary big" @click="deposit()">Deposit</button>
+			<button class="primary big" @click="deposit()" v-if="action == 'deposit'">Deposit</button>
+			<button class="primary big" @click="withdraw()" v-if="action == 'withdraw'">Withdraw</button>
 		</div>
 		<TxStatus :status="txStatus" :onHidden="hideStatus"/>
 	</div>
@@ -61,6 +66,7 @@ export default {
 			assetTicker: 'DAI',
 			assetAmount: '100',
 			platformName: 'Compound',
+			action: 'deposit',
 			rates: {
 				'Compound': {},
 				'Fulcrum': {},
@@ -95,6 +101,9 @@ export default {
 		},
 		selectPlatform(platform) {
 			this.platformName = platform;
+		},
+		selectAction(action) {
+			this.action = action;
 		},
 		deposit() {
 			if (this.platformName == 'Compound') {
@@ -288,6 +297,14 @@ export default {
 </script>
 
 <style scoped>
+#action-selector-wrapper {
+	margin-top: 0.5em;
+}
+
+#amount-wrapper {
+	margin-top: 3em;
+}
+
 .list {
 	display: flex;
 }
