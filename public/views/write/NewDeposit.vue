@@ -1,6 +1,6 @@
 <template>
 	<div>
-		<h2>Deposit</h2>
+		<h2>Manage deposits</h2>
 		<div>
 			<div class="list">
 				<div v-for="asset in assets" class="asset-selector" :class="{ 'selected': asset == assetTicker }" @click="selectAsset(asset)">
