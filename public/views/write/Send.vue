@@ -49,6 +49,7 @@ export default {
 	},
 	data() {
 		return {
+			account: undefined,
 			amount: '0',
 			asset: 'ETH',
 			recipient: '',
