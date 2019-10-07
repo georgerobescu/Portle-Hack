@@ -23,7 +23,7 @@
 			Rate: 1 {{ outputAsset }} = {{ formatRate(rate) }} {{ inputAsset }}
 		</div>
 		<div id="badge-wrapper">
-			<span class="badge badge-info">{{ message }}</span>
+			<span class="badge badge-info">Selling {{ inputAmount }} {{ inputAsset }} for {{ outputAsset }}</span>
 		</div>
 		<!-- <div id="badge-wrapper">
 			<span class="badge badge-danger">
@@ -387,18 +387,6 @@ export default {
 				return new BigNumber(0);
 			}
 			return inputAmount.div(outputAmount);
-		},
-		message() {
-			const one = new BigNumber(1);
-			if (this.isLastChangedInput) {
-				const outputAmount = new BigNumber(this.outputAmount);
-				const outputAmountAfterSlippage = outputAmount.times(one.minus(slippage)).toFixed(6);
-				return `Selling ${this.inputAmount} ${this.inputAsset} to get at least ${outputAmountAfterSlippage} ${this.outputAsset}`;
-			} else {
-				const inputAmount = new BigNumber(this.inputAmount);
-				const inputAmountAfterSlippage = inputAmount.times(one.plus(slippage)).toFixed(6);
-				return `Buying ${this.outputAmount} ${this.outputAsset} to spend no more than ${inputAmountAfterSlippage} ${this.inputAsset}`;
-			}
 		},
 	},
 }

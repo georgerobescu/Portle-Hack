@@ -14,7 +14,7 @@
 			</span>
 		</div>
 		<div id="badge-wrapper">
-			<span class="badge badge-info">{{ message }}</span>
+			<span class="badge badge-info">Sending {{ amount }} {{ asset }} to {{ recipient }}</span>
 		</div>
 		<!-- <div id="badge-wrapper">
 			<span class="badge badge-danger">
@@ -167,11 +167,6 @@ export default {
 			}
 			const value = new BigNumber(valueString);
 			return value.toFixed(6);
-		},
-	},
-	computed: {
-		message() {
-			return `Sending ${this.amount} ${this.asset} to ${this.recipient}`;
 		},
 	},
 }
