@@ -4,6 +4,10 @@
 		<div id="label-name">{{ asset.name }}</div>
 		<div id="amount">{{ formatBalance(asset.balance) }} {{ asset.ticker }}</div>
 		<div id="value">{{ formatMoney(asset.value) }} @ {{ formatMoney(asset.price) }}/ETH</div>
+		<div id="action-wrapper">
+			<button class="action" @click="openSwap()">Swap</button>
+			<button class="action" @click="openSend()">Send</button>
+		</div>
 	</div>
 </template>
 
@@ -37,6 +41,20 @@ export default {
 		this.loadBalance();
 	},
 	methods: {
+		openSend() {
+			const path = '/send';
+			this.$router.state = {
+				asset: this.ticker,
+			};
+			this.$router.push(path);
+		},
+		openSwap() {
+			const path = `/swap`;
+			this.$router.state = {
+				inputAsset: this.ticker,
+			};
+			this.$router.push(path);
+		},
 		async loadBalance() {
 			const url = `https://api.ethplorer.io/getAddressInfo/${this.account.address}?apiKey=freekey`;
 			const response = await fetch(url);
@@ -136,5 +154,9 @@ export default {
 
 #value {
 	font-size: 1.15em;
+}
+
+#action-wrapper {
+	margin-top: 3em;
 }
 </style>

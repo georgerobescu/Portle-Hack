@@ -5,6 +5,10 @@
 		<div id="amount">{{ formatBalance(deposit.balance) }} {{ deposit.ticker }}</div>
 		<div id="rate">{{ formatRate(deposit.rate) }} annual rate</div>
 		<div id="value">{{ formatMoney(deposit.value) }} @ {{ formatMoney(deposit.price) }}/ETH</div>
+		<div id="action-wrapper">
+			<button class="action" @click="openDeposit('deposit')">Supply</button>
+			<button class="action" @click="openDeposit('withdraw')">Withdraw</button>
+		</div>
 	</div>
 </template>
 
@@ -41,6 +45,15 @@ export default {
 		this.loadDeposit();
 	},
 	methods: {
+		openDeposit(action) {
+			const path = '/deposit/new';
+			this.$router.state = {
+				assetTicker: this.ticker,
+				platformName: this.platform,
+				action,
+			};
+			this.$router.push(path);
+		},
 		loadDeposit() {
 			if (this.platform == 'Compound') {
 				this._loadCompoundDeposit();
@@ -232,5 +245,9 @@ export default {
 #value,
 #rate {
 	font-size: 1.15em;
+}
+
+#action-wrapper {
+	margin-top: 3em;
 }
 </style>

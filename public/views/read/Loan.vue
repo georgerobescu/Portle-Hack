@@ -5,6 +5,10 @@
 		<div id="amount">{{ formatBalance(loan.balance) }} {{ loan.ticker }}</div>
 		<div id="rate">{{ formatRate(loan.rate) }} annual rate</div>
 		<div id="value">{{ formatMoney(loan.value) }} @ {{ formatMoney(loan.price) }}/ETH</div>
+		<div id="action-wrapper">
+			<button class="action" @click="openLoan('borrow')">Borrow</button>
+			<button class="action" @click="openLoan('repay')">Repay</button>
+		</div>
 	</div>
 </template>
 
@@ -46,6 +50,15 @@ export default {
 		this.loadLoan();
 	},
 	methods: {
+		openLoan(action) {
+			const path = '/loan/new';
+			this.$router.state = {
+				assetTicker: this.ticker,
+				platformName: this.platform,
+				action,
+			};
+			this.$router.push(path);
+		},
 		loadLoan() {
 			if (this.platform == 'Compound') {
 				this._loadCompoundLoan();
@@ -212,5 +225,9 @@ export default {
 #value,
 #rate {
 	font-size: 1.15em;
+}
+
+#action-wrapper {
+	margin-top: 3em;
 }
 </style>

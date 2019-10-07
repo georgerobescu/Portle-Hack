@@ -4,6 +4,10 @@
 		<div id="label-name">{{ fund.name }}</div>
 		<div id="amount">{{ formatBalance(fund.balance) }} shares</div>
 		<div id="value">{{ formatMoney(fund.value) }} @ {{ formatMoney(fund.price) }}/ETH</div>
+		<div id="action-wrapper">
+			<button class="action" @click="openFund('invest')">Invest</button>
+			<button class="action" @click="openFund('redeem')">Redeem</button>
+		</div>
 	</div>
 </template>
 
@@ -37,6 +41,14 @@ export default {
 		this.loanFund();
 	},
 	methods: {
+		openFund(action) {
+			const path = '/fund/new';
+			this.$router.state = {
+				fundName: this.name,
+				action,
+			};
+			this.$router.push(path);
+		},
 		async loanFund() {
 			const url = "https://api.thegraph.com/subgraphs/name/melonproject/melon";
 			const query = `
@@ -141,5 +153,9 @@ export default {
 
 #value {
 	font-size: 1.15em;
+}
+
+#action-wrapper {
+	margin-top: 3em;
 }
 </style>
