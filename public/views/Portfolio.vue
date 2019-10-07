@@ -109,7 +109,7 @@ export default {
 			this.$router.push(path);
 		},
 		openNewFund() {
-			const path = '/investment/new';
+			const path = '/fund/new';
 			this.$router.push(path);
 		},
 		async loadBalances() {

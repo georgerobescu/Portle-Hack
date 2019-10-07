@@ -18,7 +18,7 @@ export default {
 	props: [ 'balances', 'fundData', 'ethPrice' ],
 	methods: {
 		openFund(fund) {
-			const path = `/fund/${fund.name}`;
+			const path = `/fund/melon/${fund.name}`;
 			this.$router.push(path);
 		},
 		getBalance(platform, fundName) {

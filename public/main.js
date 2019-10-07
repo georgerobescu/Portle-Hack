@@ -25,12 +25,12 @@ const routes = [
 	{ path: '/asset/:ticker', component: Asset },
 	{ path: '/deposit/:platform/:ticker', component: Deposit },
 	{ path: '/loan/:platform/:ticker', component: Loan },
-	{ path: '/fund/:name', component: Fund },
+	{ path: '/fund/melon/:name', component: Fund },
 
 	{ path: '/swap', component: Swap },
 	{ path: '/deposit/new', component: NewDeposit },
 	{ path: '/loan/new', component: NewLoan },
-	{ path: '/investment/new', component: NewFund },
+	{ path: '/fund/new', component: NewFund },
 ];
 
 const router = new VueRouter({
