@@ -20,12 +20,12 @@
 				<span class="label label-ghost label-right inline">WETH</span>
 			</span>
 		</div>
-		<!-- <div style="margin-top: 2em">
+		<!-- <div id="badge-wrapper">
 			<span class="badge badge-info">
 				You are depositing {{ assetAmount }} {{ assetTicker }} to {{ platformName }}.
 			</span>
 		</div> -->
-		<div style="margin-top: 1em">
+		<div id="button-wrapper">
 			<button class="primary big" @click="invest()" v-if="action == 'invest'">Invest</button>
 			<button class="primary big" @click="redeem()" v-if="action == 'redeem'">Redeem</button>
 		</div>
@@ -222,6 +222,14 @@ export default {
 
 #amount-wrapper {
 	margin-top: 3em;
+}
+
+#badge-wrapper {
+	margin-top: 2em;
+}
+
+#button-wrapper {
+	margin-top: 1em;
 }
 
 .list {

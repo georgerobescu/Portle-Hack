@@ -4,7 +4,7 @@
 			<h2>Assets</h2>
 			<div v-if="account && account.auth">
 				<button @click="openSend()">Send</button>
-				<button @click="openSwap()" style="margin-left: 8px">Swap</button>
+				<button @click="openSwap()" id="swap-button">Swap</button>
 			</div>
 		</div>
 		<AssetList :balances="balances" :prices="prices" :tokens="tokens" :decimals="decimals" />
@@ -384,3 +384,9 @@ export default {
 	}
 }
 </script>
+
+<style scoped>
+#swap-button {
+	margin-left: 8px;
+}
+</style>

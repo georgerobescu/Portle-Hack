@@ -6,22 +6,22 @@
 				<input class="address inline" placeholder="Enter address" v-model="recipient">
 			</span>
 		</div>
-		<div style="margin-top: 1em">
+		<div id="amount-form-wrapper">
 			<span class="input-group">
 				<span class="max-label" @click="setMax()">MAX</span>
 				<input class="amount" v-model="amount">
 				<AssetPicker :ticker="asset" :onSelect="assetSelected" class="inline"/>
 			</span>
 		</div>
-		<div style="margin-top: 2em">
+		<div id="badge-wrapper">
 			<span class="badge badge-info">{{ message }}</span>
 		</div>
-		<!-- <div style="margin-top: 2em">
+		<!-- <div id="badge-wrapper">
 			<span class="badge badge-danger">
 				Expected slippage is 1.58%.
 			</span>
 		</div> -->
-		<div style="margin-top: 1em">
+		<div id="button-wrapper">
 			<button class="primary big" @click="send()">Send</button>
 		</div>
 		<TxStatus :status="txStatus" :onHidden="hideStatus"/>
@@ -166,6 +166,18 @@ export default {
 <style scoped>
 #view {
 	margin-top: 2em;
+}
+
+#amount-form-wrapper {
+	margin-top: 1em;
+}
+
+#badge-wrapper {
+	margin-top: 2em;
+}
+
+#button-wrapper {
+	margin-top: 1em;
 }
 
 .inline {

@@ -27,12 +27,12 @@
 				<span class="label label-ghost label-right inline">{{ assetTicker }}</span>
 			</span>
 		</div>
-		<!-- <div style="margin-top: 2em">
+		<!-- <div id="badge-wrapper">
 			<span class="badge badge-info">
 				You are depositing {{ assetAmount }} {{ assetTicker }} to {{ platformName }}.
 			</span>
 		</div> -->
-		<div style="margin-top: 1em">
+		<div id="button-wrapper">
 			<button class="primary big" @click="deposit()" v-if="action == 'deposit'">Deposit</button>
 			<button class="primary big" @click="withdraw()" v-if="action == 'withdraw'">Withdraw</button>
 		</div>
@@ -333,6 +333,14 @@ export default {
 
 #amount-wrapper {
 	margin-top: 3em;
+}
+
+#badge-wrapper {
+	margin-top: 2em;
+}
+
+#button-wrapper {
+	margin-top: 1em;
 }
 
 .list {

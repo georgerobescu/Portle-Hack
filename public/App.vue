@@ -1,13 +1,13 @@
 <template>
 	<div>
 		<header v-if="showNavigation()">
-			<div style="display: flex; align-items: center;" @click="openHomePage()">
+			<div class="header-part" @click="openHomePage()">
 				<img src="../assets/logo.svg" height="32px">
-				<h1 id="title" style="margin-left: 0.5em; cursor: default;">Portle</h1>
+				<h1 id="title">Portle</h1>
 			</div>
-			<div style="display: flex; align-items: center;">
+			<div class="header-part">
 				<span>{{ formatAddress() }}</span>
-				<button @click="logout()" style="margin-left: 16px">Logout</button>
+				<button @click="logout()" id="logout-button">Logout</button>
 			</div>
 		</header>
 		<main>
@@ -288,5 +288,21 @@ input.invalid {
 .hidden {
 	opacity: 0;
 	cursor: inherit;
+}
+</style>
+
+<style scoped>
+.header-part {
+	display: flex;
+	align-items: center;
+}
+
+h1#title {
+	margin-left: 0.5em;
+	cursor: default;
+}
+
+#logout-button {
+	margin-left: 16px;
 }
 </style>

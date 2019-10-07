@@ -19,18 +19,18 @@
 				</span>
 			</div>
 		</div>
-		<div style="margin-top: 2em;">
+		<div id="rate-wrapper">
 			Rate: 1 {{ outputAsset }} = {{ formatRate(rate) }} {{ inputAsset }}
 		</div>
-		<div style="margin-top: 2em">
+		<div id="badge-wrapper">
 			<span class="badge badge-info">{{ message }}</span>
 		</div>
-		<!-- <div style="margin-top: 2em">
+		<!-- <div id="badge-wrapper">
 			<span class="badge badge-danger">
 				Expected slippage is 1.58%.
 			</span>
 		</div> -->
-		<div style="margin-top: 1em">
+		<div id="button-wrapper">
 			<button class="primary big" @click="swap()">Swap</button>
 		</div>
 		<TxStatus :status="txStatus" :onHidden="hideStatus"/>
@@ -402,6 +402,18 @@ export default {
 	display: flex;
 	align-items: center;
 	justify-content: center;
+}
+
+#rate-wrapper {
+	margin-top: 2em;
+}
+
+#badge-wrapper {
+	margin-top: 2em;
+}
+
+#button-wrapper {
+	margin-top: 1em;
 }
 
 .inline {
