@@ -146,6 +146,7 @@ input {
 
 input.address {
 	width: 480px;
+	margin-left: 8px;
 	text-transform: lowercase;
 }
 
