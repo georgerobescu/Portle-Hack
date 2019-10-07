@@ -28,7 +28,7 @@
 		<div class="header">
 			<h2>Funds</h2>
 			<div v-if="account && account.auth">
-				<button onclick="location.href='./fund-new.html';">New investment</button>
+				<button @click="openNewFund()">New investment</button>
 			</div>
 		</div>
 		<FundList :balances="fundBalances" :fundData="funds" :ethPrice="prices['ETH']" />
@@ -106,6 +106,10 @@ export default {
 		},
 		openNewLoan() {
 			const path = '/loan/new';
+			this.$router.push(path);
+		},
+		openNewFund() {
+			const path = '/investment/new';
 			this.$router.push(path);
 		},
 		async loadBalances() {
