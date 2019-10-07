@@ -112,6 +112,13 @@ export default {
 				this.depositFulcrum();
 			}
 		},
+		withdraw() {
+			if (this.platformName == 'Compound') {
+				this.withdrawCompound();
+			} else  {
+				this.withdrawFulcrum();
+			}
+		},
 		loadRates() {
 			this.loadCompoundRates();
 			this.loadFulcrumRates();
@@ -154,6 +161,29 @@ export default {
 			} catch(e) {
 				this.txStatus = 'rejected';
 			}
+		},
+		async withdrawCompound() {
+			const assetAddress = addresses[this.assetTicker];
+			const cTokenAddress = this.tokenAddresses['Compound'][this.assetTicker];
+			const cToken = new ethers.Contract(cTokenAddress, compoundTokenAbi, signer);
+			const mintAmount = this.toLongAmount(this.assetAmount, this.assetTicker);
+			const mintAmountNumber = new BigNumber(mintAmount);
+			const indexNumber = new BigNumber(indices['Compound'][this.assetTicker]);
+			try {
+				this.txStatus = 'mining';
+				const tx = await cToken.mint(mintAmount);
+				const txReceipt = await provider.getTransactionReceipt(tx.hash);
+				if (txReceipt.status == 1) {
+					this.txStatus = 'success';
+				} else {
+					this.txStatus = 'failure';
+				}
+			} catch(e) {
+				this.txStatus = 'rejected';
+			}
+		},
+		async withdrawFulcrum() {
+
 		},
 		async hideStatus() {
 			this.txStatus = 'none';
