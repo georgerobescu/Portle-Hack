@@ -3,7 +3,7 @@
 		<div class="header">
 			<h2>Assets</h2>
 			<div v-if="account && account.auth">
-				<button onclick="location.href='./send.html';">Send</button>
+				<button @click="openSend()">Send</button>
 				<button @click="openSwap()" style="margin-left: 8px">Swap</button>
 			</div>
 		</div>
@@ -96,6 +96,10 @@ export default {
 		this.loadMelon();
 	},
 	methods: {
+		openSend() {
+			const path = '/send';
+			this.$router.push(path);
+		},
 		openSwap() {
 			const path = `/swap`;
 			this.$router.push(path);
