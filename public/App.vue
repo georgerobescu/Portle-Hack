@@ -115,6 +115,10 @@ button.big {
 	height: 2.5em;
 }
 
+button.action {
+	margin: 0 0.5em;
+}
+
 button:hover {
 	background: #dbbb74;
 	box-shadow: rgba(0, 0, 0, 0.2) 0px 2px 4px;
