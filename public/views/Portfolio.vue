@@ -79,16 +79,11 @@ export default {
 		}
 	},
 	mounted() {
-		const address = localStorage.getItem('address');
-		const auth = localStorage.getItem('auth') == 'true';
-		if (!address) {
+		this.loadAccount();
+		if (!this.account) {
 			this.$router.push('/login');
 			return;
 		}
-		this.account = {
-			address,
-			auth,
-		};
 		this.loadBalances();
 		this.loadCompound();
 		this.loadFulcrum();
@@ -115,6 +110,17 @@ export default {
 		openNewFund() {
 			const path = '/fund/new';
 			this.$router.push(path);
+		},
+		loadAccount() {
+			const address = localStorage.getItem('address');
+			const auth = localStorage.getItem('auth') == 'true';
+			if (!address) {
+				return;
+			}
+			this.account = {
+				address,
+				auth,
+			};
 		},
 		async loadBalances() {
 			const url = `https://api.ethplorer.io/getAddressInfo/${this.account.address}?apiKey=freekey`;

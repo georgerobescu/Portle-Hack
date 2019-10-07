@@ -82,16 +82,11 @@ export default {
 		}
 	},
 	mounted() {
-		const address = localStorage.getItem('address');
-		const auth = localStorage.getItem('auth') == 'true';
-		if (!address || !auth) {
+		this.loadAccount();
+		if (!this.account) {
 			this.$router.push('/login');
 			return;
 		}
-		this.account = {
-			address,
-			auth,
-		};
 		const routerState = this.$router.state;
 		if (routerState && routerState.inputAsset) {
 			this.inputAsset = routerState.inputAsset;
@@ -116,6 +111,17 @@ export default {
 		outputTokenSelected(ticker) {
 			this.outputAsset = ticker;
 			this.loadPrice();
+		},
+		loadAccount() {
+			const address = localStorage.getItem('address');
+			const auth = localStorage.getItem('auth') == 'true';
+			if (!address || !auth) {
+				return;
+			}
+			this.account = {
+				address,
+				auth,
+			};
 		},
 		async loadPrice() {
 			this.loading = true;

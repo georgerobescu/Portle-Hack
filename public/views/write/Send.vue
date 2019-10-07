@@ -57,16 +57,11 @@ export default {
 		}
 	},
 	mounted() {
-		const address = localStorage.getItem('address');
-		const auth = localStorage.getItem('auth') == 'true';
-		if (!address || !auth) {
+		this.loadAccount();
+		if (!this.account) {
 			this.$router.push('/login');
 			return;
 		}
-		this.account = {
-			address,
-			auth,
-		};
 		const routerState = this.$router.state;
 		if (routerState && routerState.asset) {
 			this.asset = routerState.asset;
@@ -130,6 +125,17 @@ export default {
 					this.txStatus = 'rejected';
 				}
 			}
+		},
+		loadAccount() {
+			const address = localStorage.getItem('address');
+			const auth = localStorage.getItem('auth') == 'true';
+			if (!address || !auth) {
+				return;
+			}
+			this.account = {
+				address,
+				auth,
+			};
 		},
 		toShortAmount(amount, ticker) {
 			const ten = new BigNumber(10);

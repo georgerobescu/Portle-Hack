@@ -27,16 +27,11 @@ export default {
 		}
 	},
 	mounted() {
-		const address = localStorage.getItem('address');
-		const auth = localStorage.getItem('auth') == 'true';
-		if (!address) {
+		this.loadAccount();
+		if (!this.account) {
 			this.$router.push('/login');
 			return;
 		}
-		this.account = {
-			address,
-			auth,
-		};
 		this.name = this.$route.params.name;
 		this.loanFund();
 	},
@@ -48,6 +43,17 @@ export default {
 				action,
 			};
 			this.$router.push(path);
+		},
+		loadAccount() {
+			const address = localStorage.getItem('address');
+			const auth = localStorage.getItem('auth') == 'true';
+			if (!address) {
+				return;
+			}
+			this.account = {
+				address,
+				auth,
+			};
 		},
 		async loanFund() {
 			const url = "https://api.thegraph.com/subgraphs/name/melonproject/melon";

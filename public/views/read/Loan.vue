@@ -35,16 +35,11 @@ export default {
 		}
 	},
 	mounted() {
-		const address = localStorage.getItem('address');
-		const auth = localStorage.getItem('auth') == 'true';
-		if (!address) {
+		this.loadAccount();
+		if (!this.account) {
 			this.$router.push('/login');
 			return;
 		}
-		this.account = {
-			address,
-			auth,
-		};
 		this.platform = this.$route.params.platform;
 		this.ticker = this.$route.params.ticker;
 		this.loadLoan();
@@ -58,6 +53,17 @@ export default {
 				action,
 			};
 			this.$router.push(path);
+		},
+		loadAccount() {
+			const address = localStorage.getItem('address');
+			const auth = localStorage.getItem('auth') == 'true';
+			if (!address) {
+				return;
+			}
+			this.account = {
+				address,
+				auth,
+			};
 		},
 		loadLoan() {
 			if (this.platform == 'Compound') {
