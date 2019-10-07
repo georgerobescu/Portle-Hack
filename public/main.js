@@ -11,6 +11,7 @@ import Deposit from './views/read/Deposit.vue';
 import Loan from './views/read/Loan.vue';
 import Fund from './views/read/Fund.vue';
 
+import Send from './views/write/Send.vue';
 import Swap from './views/write/Swap.vue';
 import NewDeposit from './views/write/NewDeposit.vue';
 import NewLoan from './views/write/NewLoan.vue';
@@ -27,6 +28,7 @@ const routes = [
 	{ path: '/loan/:platform/:ticker', component: Loan },
 	{ path: '/fund/melon/:name', component: Fund },
 
+	{ path: '/send', component: Send },
 	{ path: '/swap', component: Swap },
 	{ path: '/deposit/new', component: NewDeposit },
 	{ path: '/loan/new', component: NewLoan },
