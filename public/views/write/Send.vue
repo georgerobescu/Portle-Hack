@@ -62,10 +62,7 @@ export default {
 			this.$router.push('/login');
 			return;
 		}
-		const routerState = this.$router.state;
-		if (routerState && routerState.asset) {
-			this.asset = routerState.asset;
-		}
+		this.loadRouterState();
 	},
 	methods: {
 		assetSelected(asset) {
@@ -136,6 +133,12 @@ export default {
 				address,
 				auth,
 			};
+		},
+		loadRouterState() {
+			const routerState = this.$router.state;
+			if (routerState && routerState.asset) {
+				this.asset = routerState.asset;
+			}
 		},
 		toShortAmount(amount, ticker) {
 			const ten = new BigNumber(10);

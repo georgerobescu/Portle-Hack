@@ -87,10 +87,7 @@ export default {
 			this.$router.push('/login');
 			return;
 		}
-		const routerState = this.$router.state;
-		if (routerState && routerState.inputAsset) {
-			this.inputAsset = routerState.inputAsset;
-		}
+		this.loadRouterState();
 		this.loadPrice();
 	},
 	methods: {
@@ -122,6 +119,12 @@ export default {
 				address,
 				auth,
 			};
+		},
+		loadRouterState() {
+			const routerState = this.$router.state;
+			if (routerState && routerState.inputAsset) {
+				this.inputAsset = routerState.inputAsset;
+			}
 		},
 		async loadPrice() {
 			this.loading = true;

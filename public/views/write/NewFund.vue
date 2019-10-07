@@ -67,15 +67,7 @@ export default {
 			this.$router.push('/login');
 			return;
 		}
-		const routerState = this.$router.state;
-		if (routerState) {
-			if (routerState.fundName) {
-				this.fundName = routerState.fundName;
-			}
-			if (routerState.action) {
-				this.action = routerState.action;
-			}
-		}
+		this.loadRouterState();
 		this.loadFunds();
 	},
 	methods: {
@@ -138,6 +130,17 @@ export default {
 				address,
 				auth,
 			};
+		},
+		loadRouterState() {
+			const routerState = this.$router.state;
+			if (routerState) {
+				if (routerState.fundName) {
+					this.fundName = routerState.fundName;
+				}
+				if (routerState.action) {
+					this.action = routerState.action;
+				}
+			}
 		},
 		async loadFunds() {
 			const url = "https://api.thegraph.com/subgraphs/name/melonproject/melon";
