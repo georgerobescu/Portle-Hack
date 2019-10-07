@@ -13,10 +13,8 @@
 				<AssetPicker :ticker="asset" :onSelect="assetSelected" class="inline"/>
 			</span>
 		</div>
-		<div id="badge-wrapper">
-			<span class="badge badge-info">Sending {{ amount }} {{ asset }} to {{ recipient }}</span>
-		</div>
 		<!-- <div id="badge-wrapper">
+			<span class="badge badge-info">Sending {{ amount }} {{ asset }} to {{ recipient }}</span>
 			<span class="badge badge-danger">
 				Expected slippage is 1.58%.
 			</span>

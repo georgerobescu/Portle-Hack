@@ -22,10 +22,8 @@
 		<div id="rate-wrapper">
 			Rate: 1 {{ outputAsset }} = {{ formatRate(rate) }} {{ inputAsset }}
 		</div>
-		<div id="badge-wrapper">
-			<span class="badge badge-info">Selling {{ inputAmount }} {{ inputAsset }} for {{ outputAsset }}</span>
-		</div>
 		<!-- <div id="badge-wrapper">
+			<span class="badge badge-info">Selling {{ inputAmount }} {{ inputAsset }} for {{ outputAsset }}</span>
 			<span class="badge badge-danger">
 				Expected slippage is 1.58%.
 			</span>
