@@ -67,6 +67,10 @@ export default {
 			address,
 			auth,
 		};
+		const routerState = this.$router.state;
+		if (routerState && routerState.asset) {
+			this.asset = routerState.asset;
+		}
 	},
 	methods: {
 		assetSelected(asset) {

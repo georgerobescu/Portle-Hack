@@ -93,6 +93,18 @@ export default {
 			address,
 			auth,
 		};
+		const routerState = this.$router.state;
+		if (routerState) {
+			if (routerState.assetTicker) {
+				this.assetTicker = routerState.assetTicker;
+			}
+			if (routerState.platformName) {
+				this.platformName = routerState.platformName;
+			}
+			if (routerState.action) {
+				this.action = routerState.action;
+			}
+		}
 		this.loadRates();
 	},
 	methods: {

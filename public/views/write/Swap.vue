@@ -92,6 +92,10 @@ export default {
 			address,
 			auth,
 		};
+		const routerState = this.$router.state;
+		if (routerState && routerState.inputAsset) {
+			this.inputAsset = routerState.inputAsset;
+		}
 		this.loadPrice();
 	},
 	methods: {

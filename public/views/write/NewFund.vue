@@ -72,6 +72,15 @@ export default {
 			address,
 			auth,
 		};
+		const routerState = this.$router.state;
+		if (routerState) {
+			if (routerState.fundName) {
+				this.fundName = routerState.fundName;
+			}
+			if (routerState.action) {
+				this.action = routerState.action;
+			}
+		}
 		this.loadFunds();
 	},
 	methods: {
