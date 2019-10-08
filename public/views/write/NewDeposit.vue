@@ -287,7 +287,7 @@ export default {
 				const ticker = token.symbol.substr(1);
 				const address = token.address;
 				const rawRate = token.supplyRate;
-				const index = token.supplyIndex;
+				const index = token.index;
 				const rawRateNumber = new BigNumber(rawRate);
 				const rateNumber = rawRateNumber.div('1e18').div('1e2');
 				const rate = rateNumber.toString();
