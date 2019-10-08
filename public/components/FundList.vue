@@ -15,7 +15,7 @@
 import BigNumber from 'bignumber.js';
 
 export default {
-	props: [ 'balances', 'fundData', 'ethPrice' ],
+	props: [ 'balances', 'fundData' ],
 	methods: {
 		openFund(fund) {
 			const path = `/fund/melon/${fund.name}`;
@@ -33,7 +33,7 @@ export default {
 			const price = this.fundData[platform][fundName].price;
 			const priceNumber = new BigNumber(price);
 			const balance = this.getBalance(platform, fundName);
-			const value = priceNumber.times(balance).times(this.ethPrice);
+			const value = priceNumber.times(balance);
 			return value;
 		},
 		formatBalance(balance) {

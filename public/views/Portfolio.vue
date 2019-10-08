@@ -31,7 +31,7 @@
 				<button @click="openNewFund()">New investment</button>
 			</div>
 		</div>
-		<FundList :balances="fundBalances" :fundData="funds" :ethPrice="prices['ETH']" />
+		<FundList :balances="fundBalances" :fundData="funds" />
 	</div>
 </template>
 
@@ -363,8 +363,9 @@ export default {
 			for (const investment of investments) {
 				const balance = investment.shares;
 				const name = investment.fund.name;
-				const priceRaw = investment.fund.sharePrice;
-				const priceRawNumber = new BigNumber(priceRaw);
+				const ethPriceRaw = investment.fund.sharePrice;
+				const ethPriceRawNumber = new BigNumber(ethPriceRaw);
+				const priceRawNumber = ethPriceRawNumber.times(prices['ETH']);
 				const priceNumber = priceRawNumber.div('1e18');
 				const price = priceNumber.toString();
 				const roi = 1; // TODO
