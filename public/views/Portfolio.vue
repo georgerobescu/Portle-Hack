@@ -1,5 +1,6 @@
 <template>
 	<div id="view">
+		<TotalBalance :assets="balances" :deposits="depositBalances" :loans="loanBalances" :funds="fundBalances" :fundData="funds"/>
 		<div class="header">
 			<h2>Assets</h2>
 			<div v-if="account && account.auth">
@@ -46,6 +47,7 @@ import decimals from '../data/decimals.json';
 
 import bzxAbi from '../data/abi/bzx.json';
 
+import TotalBalance from '../components/TotalBalance.vue';
 import AssetList from '../components/AssetList.vue';
 import DepositList from '../components/DepositList.vue';
 import LoanList from '../components/LoanList.vue';
@@ -55,6 +57,7 @@ const provider = new ethers.providers.Web3Provider(window.ethereum);
 
 export default {
 	components: {
+		TotalBalance,
 		AssetList,
 		DepositList,
 		LoanList,
