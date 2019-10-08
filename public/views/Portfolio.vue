@@ -316,7 +316,7 @@ export default {
 			const bzx = new ethers.Contract(bzxAddress, bzxAbi, provider);
 			const loans = await bzx.getBasicLoansData(this.account.address, 5);
 			for (const loan of loans) {
-				if (loan.orderHash == '0x0000000000000000000000000000000000000000000000000000000000000000') {
+				if (loan.loanOrderHash == '0x0000000000000000000000000000000000000000000000000000000000000000') {
 					break;
 				}
 				const tickers = {
