@@ -111,6 +111,12 @@ export default {
 			}
 		},
 		repay() {
+			if (this.platformName == 'Compound') {
+				this.repayCompound();
+			}
+			if (this.platformName == 'Torque') {
+				this.repayTorque();
+			}
 		},
 		loadAccount() {
 			const address = localStorage.getItem('address');
@@ -187,6 +193,32 @@ export default {
 			} catch(e) {
 				this.txStatus = 'rejected';
 			}
+		},
+		async repayCompound() {
+			const assetAddress = addresses[this.assetTicker];
+			const cTokenAddress = this.tokenAddresses['Compound'][this.assetTicker];
+			const cToken = new ethers.Contract(cTokenAddress, compoundTokenAbi, signer);
+			const repayAmount = this.toLongAmount(this.assetAmount, this.assetTicker);
+			try {
+				this.txStatus = 'mining';
+				const options = {
+					value: '0x' + repayAmount.toString(16),
+				};
+				const tx = this.assetTicker == 'ETH'
+					? await cToken.repayBorrow(options)
+					: await cToken.repayBorrow(repayAmount);
+				const txReceipt = await provider.getTransactionReceipt(tx.hash);
+				if (txReceipt.status == 1) {
+					this.txStatus = 'success';
+				} else {
+					this.txStatus = 'failure';
+				}
+			} catch(e) {
+				this.txStatus = 'rejected';
+			}
+		},
+		async repayTorque() {
+
 		},
 		async hideStatus() {
 			this.txStatus = 'none';
