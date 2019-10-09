@@ -185,14 +185,16 @@ export default {
 		},
 		async withdrawCompound() {
 			const assetAddress = addresses[this.assetTicker];
+			const index = this.indices['Compound'][this.assetTicker];
+			const redeemAmount = this.toLongAmount(this.assetAmount, this.assetTicker);
+			const redeemAmountNumber = new BigNumber(redeemAmount);
+			const tokenAmountNumber = redeemAmountNumber.times('1e18').div(index);
+			const tokenAmount = tokenAmountNumber.toFixed(0);
 			const cTokenAddress = this.tokenAddresses['Compound'][this.assetTicker];
 			const cToken = new ethers.Contract(cTokenAddress, compoundTokenAbi, signer);
-			const mintAmount = this.toLongAmount(this.assetAmount, this.assetTicker);
-			const mintAmountNumber = new BigNumber(mintAmount);
-			const indexNumber = new BigNumber(indices['Compound'][this.assetTicker]);
 			try {
 				this.txStatus = 'mining';
-				const tx = await cToken.mint(mintAmount);
+				const tx = await cToken.redeem(tokenAmount);
 				const txReceipt = await provider.getTransactionReceipt(tx.hash);
 				if (txReceipt.status == 1) {
 					this.txStatus = 'success';
@@ -204,7 +206,27 @@ export default {
 			}
 		},
 		async withdrawFulcrum() {
-
+			const account = this.account.address;
+			const assetAddress = addresses[this.assetTicker];
+			const index = this.indices['Fulcrum'][this.assetTicker];
+			const burnAmount = this.toLongAmount(this.assetAmount, this.assetTicker);
+			const burnAmountNumber = new BigNumber(burnAmount);
+			const tokenAmountNumber = burnAmountNumber.times('1e18').div(index);
+			const tokenAmount = tokenAmountNumber.toFixed(0);
+			const iTokenAddress = this.tokenAddresses['Fulcrum'][this.assetTicker];
+			const iToken = new ethers.Contract(iTokenAddress, fulcrumTokenAbi, signer);
+			try {
+				this.txStatus = 'mining';
+				const tx = await iToken.burn(account, tokenAmount);
+				const txReceipt = await provider.getTransactionReceipt(tx.hash);
+				if (txReceipt.status == 1) {
+					this.txStatus = 'success';
+				} else {
+					this.txStatus = 'failure';
+				}
+			} catch(e) {
+				this.txStatus = 'rejected';
+			}
 		},
 		async hideStatus() {
 			this.txStatus = 'none';
