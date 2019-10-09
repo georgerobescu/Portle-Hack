@@ -89,7 +89,8 @@ export default {
 			return;
 		}
 		this.loadRouterState();
-		this.loadRates();
+		this.loadCompound();
+		this.loadTorque();
 	},
 	methods: {
 		selectAsset(asset) {
@@ -104,7 +105,8 @@ export default {
 		borrow() {
 			if (this.platformName == 'Compound') {
 				this.borrowCompound();
-			} else  {
+			}
+			if (this.platformName == 'Torque') {
 				this.borrowTorque();
 			}
 		},
@@ -134,10 +136,6 @@ export default {
 					this.action = routerState.action;
 				}
 			}
-		},
-		loadRates() {
-			this.loadCompoundRates();
-			this.loadTorqueRates();
 		},
 		async borrowCompound() {
 			const assetAddress = addresses[this.assetTicker];
@@ -214,7 +212,7 @@ export default {
 				this.txStatus = 'rejected';
 			}
 		},
-		async loadCompoundRates() {
+		async loadCompound() {
 			const url = "https://api.thegraph.com/subgraphs/name/destiner/compound";
 			const query = `
 				query {
@@ -247,7 +245,7 @@ export default {
 				Vue.set(this.indices['Compound'], ticker, index);
 			}
 		},
-		async loadTorqueRates() {
+		async loadTorque() {
 			const url = "https://api.thegraph.com/subgraphs/name/destiner/fulcrum";
 			const query = `
 				query {
@@ -313,7 +311,7 @@ export default {
 			}
 			const rate = new BigNumber(rateString);
 			return `${rate.times(100).toFixed(2)}%`;
-		}
+		},
 	},
 	computed: {
 		assets() {
