@@ -231,6 +231,7 @@ input.invalid {
 
 .asset-selector:hover {
 	color: #282821;
+	border-color: #a4a4a4;
 }
 
 .asset-selector.selected {
@@ -250,6 +251,7 @@ input.invalid {
 
 .app-selector:hover {
 	color: #282821;
+	border-color: #a4a4a4;
 }
 
 .app-selector.selected {
