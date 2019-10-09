@@ -34,7 +34,7 @@
 		</div> -->
 		<div id="button-wrapper">
 			<button class="primary big" @click="borrow()" v-if="action == 'borrow'">Borrow</button>
-			<button class="primary big" @click="repay()" v-if="action == 'withdraw'">Repay</button>
+			<button class="primary big" @click="repay()" v-if="action == 'repay'">Repay</button>
 		</div>
 		<TxStatus :status="txStatus" :onHidden="hideStatus"/>
 	</div>
