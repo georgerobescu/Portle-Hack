@@ -79,6 +79,10 @@ export default {
 				'Compound': {},
 				'Fulcrum': {},
 			},
+			balances: {
+				'Compound': {},
+				'Fulcrum': {},
+			},
 			txStatus: 'none',
 		}
 	},
@@ -89,7 +93,8 @@ export default {
 			return;
 		}
 		this.loadRouterState();
-		this.loadRates();
+		this.loadCompound();
+		this.loadFulcrum();
 	},
 	methods: {
 		selectAsset(asset) {
@@ -139,10 +144,6 @@ export default {
 					this.action = routerState.action;
 				}
 			}
-		},
-		loadRates() {
-			this.loadCompoundRates();
-			this.loadFulcrumRates();
 		},
 		async depositCompound() {
 			const assetAddress = addresses[this.assetTicker];
@@ -252,7 +253,7 @@ export default {
 				this.txStatus = 'rejected';
 			}
 		},
-		async loadCompoundRates() {
+		async loadCompound() {
 			const url = "https://api.thegraph.com/subgraphs/name/destiner/compound";
 			const query = `
 				query {
@@ -261,6 +262,16 @@ export default {
 						address
 						supplyRate
 						supplyIndex
+					}
+					userBalances(where: {
+						id: "${this.account.address}"
+					}) {
+						balances {
+							token {
+								symbol
+							}
+							balance
+						}
 					}
 				}`;
 			const opts = {
@@ -284,8 +295,17 @@ export default {
 				Vue.set(this.rates['Compound'], ticker, rate);
 				Vue.set(this.indices['Compound'], ticker, index);
 			}
+			if (data.userBalances.length == 0) {
+				return;
+			}
+			const userBalances = data.userBalances[0].balances;
+			for (const userBalance of userBalances) {
+				const ticker = userBalance.token.symbol.substr(1);
+				const balance = userBalance.balance;
+				Vue.set(this.balances['Compound'], ticker, balance);
+			}
 		},
-		async loadFulcrumRates() {
+		async loadFulcrum() {
 			const url = "https://api.thegraph.com/subgraphs/name/destiner/fulcrum";
 			const query = `
 				query {
@@ -294,6 +314,16 @@ export default {
 						address
 						index
 						supplyRate
+					}
+					userBalances(where: {
+						id: "${this.account.address}"
+					}) {
+						balances {
+							token {
+								symbol
+							}
+							balance
+						}
 					}
 				}`;
 			const opts = {
@@ -316,6 +346,15 @@ export default {
 				Vue.set(this.tokenAddresses['Fulcrum'], ticker, address);
 				Vue.set(this.rates['Fulcrum'], ticker, rate);
 				Vue.set(this.indices['Fulcrum'], ticker, index);
+			}
+			if (data.userBalances.length == 0) {
+				return;
+			}
+			const userBalances = data.userBalances[0].balances;
+			for (const userBalance of userBalances) {
+				const ticker = userBalance.token.symbol.substr(1);
+				const balance = userBalance.balance;
+				Vue.set(this.balances['Fulcrum'], ticker, balance);
 			}
 		},
 		toShortAmount(amount, ticker) {
