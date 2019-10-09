@@ -377,15 +377,29 @@ export default {
 		},
 		async setMax() {
 			const account = this.account.address;
-			if (this.assetTicker == 'ETH') {
-				const etherBalance = await provider.getBalance(account);
-				const assetAmount = this.toShortAmount(etherBalance.toString(), this.assetTicker);
-				this.assetAmount = assetAmount;
-			} else {
-				const inputAddress = addresses[this.assetTicker];
-				const inputToken = new ethers.Contract(inputAddress, erc20Abi, provider);
-				const inputTokenBalance = await inputToken.balanceOf(account);
-				const assetAmount = this.toShortAmount(inputTokenBalance.toString(), this.assetTicker);
+			if (this.action == 'deposit') {
+				if (this.assetTicker == 'ETH') {
+					const etherBalance = await provider.getBalance(account);
+					const assetAmount = this.toShortAmount(etherBalance.toString(), this.assetTicker);
+					this.assetAmount = assetAmount;
+				} else {
+					const inputAddress = addresses[this.assetTicker];
+					const inputToken = new ethers.Contract(inputAddress, erc20Abi, provider);
+					const inputTokenBalance = await inputToken.balanceOf(account);
+					const assetAmount = this.toShortAmount(inputTokenBalance.toString(), this.assetTicker);
+					this.assetAmount = assetAmount;
+				}
+			}
+			if (this.action == 'withdraw') {
+				const tokenBalance = this.balances[this.platformName][this.assetTicker];
+				const tokenBalanceNumber = new BigNumber(tokenBalance);
+				if (!tokenBalance) {
+					return;
+				}
+				const index = this.indices[this.platformName][this.assetTicker];
+				const amountNumber = tokenBalanceNumber.times(index).div('1e18');
+				const amount = amountNumber.toFixed(0);
+				const assetAmount = this.toShortAmount(amount, this.assetTicker);
 				this.assetAmount = assetAmount;
 			}
 		},
