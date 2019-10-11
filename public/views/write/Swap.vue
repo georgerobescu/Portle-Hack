@@ -45,7 +45,7 @@ import TxStatus from '../../components/TxStatus.vue';
 import erc20Abi from '../../data/abi/erc20.json';
 import kyberOracleAbi from '../../data/abi/kyberOracle.json';
 import kyberProxyAbi from '../../data/abi/kyberProxy.json';
-import synthetixRatesAbi from '../../data/abi/synthetixRates.json';
+import synthetixOracleAbi from '../../data/abi/synthetixOracle.json';
 import synthetixAbi from '../../data/abi/synthetix.json';
 import decimals from '../../data/decimals.json';
 import addresses from '../../data/addresses.json';
@@ -54,7 +54,7 @@ import chevronDown from '../../../assets/chevron-down.svg';
 
 const kyberOracleAddress = '0xFd9304Db24009694c680885e6aa0166C639727D6';
 const kyberProxyAddress = '0x818e6fecd516ecc3849daf6845e3ec868087b755';
-const synthetixRatesAddress = '0x99a46c42689720d9118FF7aF7ce80C2a92fC4f97';
+const synthetixOracleAddress = '0xE86C848De6e4457720A1eb7f37B519010CD26d35';
 const synthetixAddress = '0xC011A72400E58ecD99Ee497CF89E3775d4bd732F';
 
 const provider = new ethers.providers.Web3Provider(window.ethereum);
@@ -208,22 +208,17 @@ export default {
 			}
 		},
 		async loadSynthetixPrice() {
-			const synthetixRates = new ethers.Contract(synthetixRatesAddress, synthetixRatesAbi, provider);
-			const amount = this.toLongAmount(1, 'ETH');
-			const inputCurrencyCode = ethers.utils.formatBytes32String(this.inputAsset);
-			const outputCurrencyCode = ethers.utils.formatBytes32String(this.outputAsset);
-			const rate = await synthetixRates.effectiveValue(inputCurrencyCode, amount, outputCurrencyCode);
-			const rateNumber = new BigNumber(rate.toString());
-			const rateAfterFee = rateNumber.times(0.995);
+			const synthetixOracle = new ethers.Contract(synthetixOracleAddress, synthetixOracleAbi, provider);
+			const inputSynthKey = ethers.utils.formatBytes32String(this.inputAsset);
+			const outputSynthKey = ethers.utils.formatBytes32String(this.outputAsset);
 			if (this.isLastChangedInput) {
-				const inputAmountNumber = new BigNumber(this.inputAmount);
-				const outputAmountNumber = inputAmountNumber.times(rateAfterFee);
-				this.outputAmount = this.toShortAmount(outputAmountNumber, this.outputAsset);
+				const inputAmount = this.toLongAmount(this.inputAmount, this.inputAsset);
+				const outputAmount = await synthetixOracle.getOutputAmount(inputSynthKey, outputSynthKey, inputAmount);
+				this.outputAmount = this.toShortAmount(outputAmount, this.outputAsset);
 			} else {
 				const outputAmount = this.toLongAmount(this.outputAmount, this.outputAsset);
-				const outputAmountNumber = new BigNumber(outputAmount);
-				const inputAmountNumber = outputAmountNumber.div(rateAfterFee);
-				this.inputAmount = inputAmountNumber.toString();
+				const inputAmount = await synthetixOracle.getInputAmount(inputSynthKey, outputSynthKey, outputAmount);
+				this.inputAmount = this.toShortAmount(inputAmount, this.inputAsset);
 			}
 		},
 		async swapKyber() {
