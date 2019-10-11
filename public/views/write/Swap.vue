@@ -47,6 +47,8 @@ import kyberOracleAbi from '../../data/abi/kyberOracle.json';
 import kyberProxyAbi from '../../data/abi/kyberProxy.json';
 import synthetixOracleAbi from '../../data/abi/synthetixOracle.json';
 import synthetixAbi from '../../data/abi/synthetix.json';
+import bridgeOracleAbi from '../../data/abi/swapBridgeOracle.json';
+import bridgeAbi from '../../data/abi/swapBridge.json';
 import decimals from '../../data/decimals.json';
 import addresses from '../../data/addresses.json';
 
@@ -56,6 +58,8 @@ const kyberOracleAddress = '0xFd9304Db24009694c680885e6aa0166C639727D6';
 const kyberProxyAddress = '0x818e6fecd516ecc3849daf6845e3ec868087b755';
 const synthetixOracleAddress = '0xE86C848De6e4457720A1eb7f37B519010CD26d35';
 const synthetixAddress = '0xC011A72400E58ecD99Ee497CF89E3775d4bd732F';
+const bridgeOracleAddress = '0xE4Acd1d61DF4220B3c8E49F59812c1eF6a370478';
+const bridgeAddress = '0x1DBbEFE94b3454169DBc9f0a499313714112c40D';
 
 const provider = new ethers.providers.Web3Provider(window.ethereum);
 const signer = provider.getSigner();
@@ -136,6 +140,9 @@ export default {
 			if (dex == 'Synthetix') {
 				await this.loadSynthetixPrice();
 			}
+			if (dex == 'Bridge') {
+				await this.loadBridgePrice();
+			}
 			this.loading = false;
 		},
 		async swap() {
@@ -145,6 +152,9 @@ export default {
 			}
 			if (dex == 'Synthetix') {
 				await this.swapSynthetix();
+			}
+			if (dex == 'Bridge') {
+				await this.swapBridge();
 			}
 		},
 		async swapPair() {
@@ -220,6 +230,59 @@ export default {
 				const inputAmount = await synthetixOracle.getInputAmount(inputSynthKey, outputSynthKey, outputAmount);
 				this.inputAmount = this.toShortAmount(inputAmount, this.inputAsset);
 			}
+		},
+		async loadBridgePrice() {
+			const bridgeOracle = new ethers.Contract(bridgeOracleAddress, bridgeOracleAbi, provider);
+			if (this.isSynth(this.inputAsset)) {
+				const synthKey = ethers.utils.formatBytes32String(this.inputAsset);
+				if (this.outputAsset == 'ETH') {
+					if (this.isLastChangedInput) {
+						const inputAmount = this.toLongAmount(this.inputAmount, this.inputAsset);
+						const outputAmount = await bridgeOracle.getSynthToEthOutputAmount(synthKey, inputAmount);
+						this.outputAmount = this.toShortAmount(outputAmount, this.outputAsset);
+					} else {
+						const outputAmount = this.toLongAmount(this.outputAmount, this.outputAsset);
+						const inputAmount = await bridgeOracle.getSynthToEthInputAmount(synthKey, outputAmount);
+						this.inputAmount = this.toShortAmount(inputAmount, this.inputAsset);
+					}
+				} else {
+					const tokenAddress = this.getTokenAddress(this.outputAsset);
+					if (this.isLastChangedInput) {
+						const inputAmount = this.toLongAmount(this.inputAmount, this.inputAsset);
+						const outputAmount = await bridgeOracle.getSynthToTokenOutputAmount(synthKey, tokenAddress, inputAmount);
+						this.outputAmount = this.toShortAmount(outputAmount, this.outputAsset);
+					} else {
+						const outputAmount = this.toLongAmount(this.outputAmount, this.outputAsset);
+						const inputAmount = await bridgeOracle.getSynthToTokenInputAmount(synthKey, tokenAddress, outputAmount);
+						this.inputAmount = this.toShortAmount(inputAmount, this.inputAsset);
+					}
+				}
+			} else {
+				const synthKey = ethers.utils.formatBytes32String(this.outputAsset);
+				if (this.inputAsset == 'ETH') {
+					if (this.isLastChangedInput) {
+						const inputAmount = this.toLongAmount(this.inputAmount, this.inputAsset);
+						const outputAmount = await bridgeOracle.getEthToSynthOutputAmount(synthKey, inputAmount);
+						this.outputAmount = this.toShortAmount(outputAmount, this.outputAsset);
+					} else {
+						const outputAmount = this.toLongAmount(this.outputAmount, this.outputAsset);
+						const inputAmount = await bridgeOracle.getEthToSynthInputAmount(synthKey, outputAmount);
+						this.inputAmount = this.toShortAmount(inputAmount, this.inputAsset);
+					}
+				} else {
+					const tokenAddress = this.getTokenAddress(this.inputAsset);
+					if (this.isLastChangedInput) {
+						const inputAmount = this.toLongAmount(this.inputAmount, this.inputAsset);
+						const outputAmount = await bridgeOracle.getTokenToSynthOutputAmount(tokenAddress, synthKey, inputAmount);
+						this.outputAmount = this.toShortAmount(outputAmount, this.outputAsset);
+					} else {
+						const outputAmount = this.toLongAmount(this.outputAmount, this.outputAsset);
+						const inputAmount = await bridgeOracle.getTokenToSynthInputAmount(tokenAddress, synthKey, outputAmount);
+						this.inputAmount = this.toShortAmount(inputAmount, this.inputAsset);
+					}
+				}
+			}
+			
 		},
 		async swapKyber() {
 			const one = new BigNumber(1);
@@ -302,6 +365,89 @@ export default {
 				}
 			} catch(e) {
 				this.txStatus = 'rejected';
+			}
+		},
+		async swapBridge() {
+			const bridgeContract = new ethers.Contract(bridgeAddress, bridgeAbi, signer);
+			if (this.isSynth(this.inputAsset)) {
+				if (this.outputAsset == 'ETH') {
+					// Synth -> ETH
+					const synthKey = ethers.utils.formatBytes32String(this.inputAsset);
+					const inputAddress = this.getTokenAddress(this.inputAsset);
+					const inputAmount = this.toLongAmount(this.inputAmount, this.inputAsset);
+					await this.checkAllowance(bridgeAddress, inputAddress, inputAmount);
+					try {
+						this.txStatus = 'mining';
+						const tx = await bridgeContract.synthToEth(synthKey, inputAmount);
+						const txReceipt = await provider.getTransactionReceipt(tx.hash);
+						if (txReceipt.status == 1) {
+							this.txStatus = 'success';
+						} else {
+							this.txStatus = 'failure';
+						}
+					} catch(e) {
+						this.txStatus = 'rejected';
+					}
+				} else {
+					// Synth -> token
+					const synthKey = ethers.utils.formatBytes32String(this.inputAsset);
+					const outputAddress = this.getTokenAddress(this.outputAsset);
+					const inputAddress = this.getTokenAddress(this.inputAsset);
+					const inputAmount = this.toLongAmount(this.inputAmount, this.inputAsset);
+					await this.checkAllowance(bridgeAddress, inputAddress, inputAmount);
+					try {
+						this.txStatus = 'mining';
+						const tx = await bridgeContract.synthToToken(synthKey, outputAddress, inputAmount);
+						const txReceipt = await provider.getTransactionReceipt(tx.hash);
+						if (txReceipt.status == 1) {
+							this.txStatus = 'success';
+						} else {
+							this.txStatus = 'failure';
+						}
+					} catch(e) {
+						this.txStatus = 'rejected';
+					}
+				}
+			} else {
+				if (this.inputAsset == 'ETH') {
+					// ETH -> synth
+					const synthKey = ethers.utils.formatBytes32String(this.outputAsset);
+					const value = this.toLongAmount(this.inputAmount, 'ETH');
+					const valueNumber = new BigNumber(value);
+					const options = {
+						value: '0x' + valueNumber.toString(16),
+					};
+					try {
+						this.txStatus = 'mining';
+						const tx = await bridgeContract.ethToSynth(synthKey, options);
+						const txReceipt = await provider.getTransactionReceipt(tx.hash);
+						if (txReceipt.status == 1) {
+							this.txStatus = 'success';
+						} else {
+							this.txStatus = 'failure';
+						}
+					} catch(e) {
+						this.txStatus = 'rejected';
+					}
+				} else {
+					// Token -> synth
+					const inputAddress = this.getTokenAddress(this.inputAsset);
+					const synthKey = ethers.utils.formatBytes32String(this.outputAsset);
+					const inputAmount = this.toLongAmount(this.inputAmount, this.inputAsset);
+					await this.checkAllowance(bridgeAddress, inputAddress, inputAmount);
+					try {
+						this.txStatus = 'mining';
+						const tx = await bridgeContract.tokenToSynth(inputAddress, synthKey, inputAmount);
+						const txReceipt = await provider.getTransactionReceipt(tx.hash);
+						if (txReceipt.status == 1) {
+							this.txStatus = 'success';
+						} else {
+							this.txStatus = 'failure';
+						}
+					} catch(e) {
+						this.txStatus = 'rejected';
+					}
+				}
 			}
 		},
 		getDex() {
