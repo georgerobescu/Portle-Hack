@@ -44,6 +44,7 @@ import { ethers } from 'ethers';
 import prices from '../data/prices.json';
 import tokens from '../data/tokens.json';
 import decimals from '../data/decimals.json';
+import addresses from '../data/addresses.json';
 
 import bzxAbi from '../data/abi/bzx.json';
 
@@ -142,7 +143,12 @@ export default {
 			}
 			for (const tokenData of balance.tokens) {
 				const ticker = tokenData.tokenInfo.symbol;
+				const address = tokenData.tokenInfo.address;
 				if (!(ticker in this.prices)) {
+					continue;
+				}
+				const tickerAddress = this.addresses[ticker].toLowerCase();
+				if (address != tickerAddress) {
 					continue;
 				}
 				Vue.set(this.balances, ticker, tokenData.balance);
@@ -390,6 +396,9 @@ export default {
 		},
 		decimals() {
 			return decimals;
+		},
+		addresses() {
+			return addresses;
 		},
 	}
 }
