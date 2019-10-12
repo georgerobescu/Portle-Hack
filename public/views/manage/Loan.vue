@@ -352,22 +352,14 @@ export default {
 				const erc20 = new ethers.Contract(assetAddress, erc20Abi, provider);
 				const tokenBalance = await erc20.balanceOf(account);
 				const tokenBalanceNumber = new BigNumber(tokenBalance.toString());
-				if (this.platformName == 'Compound') {
-					const loanAmount = await this.getCompoundLoanAmount();
-					const loanAmountNumber = new BigNumber(loanAmount);
-					const maxRepayAmount = tokenBalanceNumber.lt(loanAmountNumber)
-						? tokenBalance
-						: loanAmount;
-					this.assetAmount = this.toShortAmount(maxRepayAmount, this.assetTicker);
-				}
-				if (this.platformName == 'Torque') {
-					const loanAmount = await this.getTorqueLoanAmount();
-					const loanAmountNumber = new BigNumber(loanAmount);
-					const maxRepayAmount = tokenBalanceNumber.lt(loanAmountNumber)
-						? tokenBalance
-						: loanAmount;
-					this.assetAmount = this.toShortAmount(maxRepayAmount, this.assetTicker);
-				}
+				const loanAmount = this.platformName == 'Compound'
+					? await this.getCompoundLoanAmount()
+					: await this.getTorqueLoanAmount();
+				const loanAmountNumber = new BigNumber(loanAmount);
+				const maxRepayAmount = tokenBalanceNumber.lt(loanAmountNumber)
+					? tokenBalance
+					: loanAmount;
+				this.assetAmount = this.toShortAmount(maxRepayAmount, this.assetTicker);
 			}
 		},
 		async getCompoundLoanAmount() {
