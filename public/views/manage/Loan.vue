@@ -218,7 +218,28 @@ export default {
 			}
 		},
 		async repayTorque() {
-
+			const account = this.account.address;
+			const assetAddress = addresses[this.assetTicker];
+			const erc20 = new ethers.Contract(assetAddress, erc20Abi, signer);
+			const repayAmount = this.toLongAmount(this.assetAmount, this.assetTicker);
+			const repayEns = `${account}.tokenloan.eth`;
+			const repayAddress = await provider.resolveName(repayEns);
+			if (!repayAddress) {
+				return;
+			}
+			try {
+				this.txStatus = 'mining';
+				const tx = await erc20.transfer(repayAddress, repayAmount);
+				const txReceipt = await provider.getTransactionReceipt(tx.hash);
+				if (txReceipt.status == 1) {
+					this.txStatus = 'success';
+				} else {
+					this.txStatus = 'failure';
+				}
+			} catch(e) {
+				console.log(e);
+				this.txStatus = 'rejected';
+			}
 		},
 		async hideStatus() {
 			this.txStatus = 'none';
