@@ -50,6 +50,7 @@ import TxStatus from '../../components/TxStatus.vue';
 import erc20Abi from '../../data/abi/erc20.json';
 import compoundTokenAbi from '../../data/abi/compoundToken.json';
 import fulcrumTokenAbi from '../../data/abi/fulcrumToken.json';
+import bzxAbi from '../../data/abi/bzx.json';
 import decimals from '../../data/decimals.json';
 import addresses from '../../data/addresses.json';
 
@@ -359,6 +360,14 @@ export default {
 						: loanAmount;
 					this.assetAmount = this.toShortAmount(maxRepayAmount, this.assetTicker);
 				}
+				if (this.platformName == 'Torque') {
+					const loanAmount = await this.getTorqueLoanAmount();
+					const loanAmountNumber = new BigNumber(loanAmount);
+					const maxRepayAmount = tokenBalanceNumber.lt(loanAmountNumber)
+						? tokenBalance
+						: loanAmount;
+					this.assetAmount = this.toShortAmount(maxRepayAmount, this.assetTicker);
+				}
 			}
 		},
 		async getCompoundLoanAmount() {
@@ -407,6 +416,32 @@ export default {
 				}
 				const loanRawAmountNumber = new BigNumber(loanRawAmount);
 				const loanAmountNumber = loanRawAmountNumber.times(borrowIndex).div(loanIndex);
+				const loanAmount = loanAmountNumber.toString();
+				return loanAmount;
+			}
+			return '0';
+		},
+		async getTorqueLoanAmount() {
+			const bzxAddress = '0x1Cf226E9413AddaF22412A2E182F9C0dE44AF002';
+			const bzx = new ethers.Contract(bzxAddress, bzxAbi, provider);
+			const loans = await bzx.getBasicLoansData(this.account.address, 5);
+			for (const loan of loans) {
+				if (loan.loanOrderHash == '0x0000000000000000000000000000000000000000000000000000000000000000') {
+					break;
+				}
+				const tickers = {
+					'0x89d24A6b4CcB1B6fAA2625fE562bDD9a23260359': 'DAI',
+					'0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48': 'USDC',
+				};
+				const ticker = tickers[loan.loanTokenAddress];
+				if (ticker != this.assetTicker) {
+					continue;
+				}
+				const loanTokenAmountFilled = loan.loanTokenAmountFilled;
+				const interestDepositRemaining = loan.interestDepositRemaining;
+				const loanTokenAmountFilledNumber = new BigNumber(loanTokenAmountFilled.toString());
+				const interestDepositRemainingNumber = new BigNumber(interestDepositRemaining.toString());
+				const loanAmountNumber = loanTokenAmountFilledNumber.minus(interestDepositRemainingNumber);
 				const loanAmount = loanAmountNumber.toString();
 				return loanAmount;
 			}
