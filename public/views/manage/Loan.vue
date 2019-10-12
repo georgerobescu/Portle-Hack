@@ -346,17 +346,71 @@ export default {
 		},
 		async setMax() {
 			const account = this.account.address;
-			if (this.assetTicker == 'ETH') {
-				const etherBalance = await provider.getBalance(account);
-				const assetAmount = this.toShortAmount(etherBalance.toString(), this.assetTicker);
-				this.assetAmount = assetAmount;
-			} else {
-				const inputAddress = addresses[this.assetTicker];
-				const inputToken = new ethers.Contract(inputAddress, erc20Abi, provider);
-				const inputTokenBalance = await inputToken.balanceOf(account);
-				const assetAmount = this.toShortAmount(inputTokenBalance.toString(), this.assetTicker);
-				this.assetAmount = assetAmount;
+			if (this.action == 'repay') {
+				const assetAddress = addresses[this.assetTicker];
+				const erc20 = new ethers.Contract(assetAddress, erc20Abi, provider);
+				const tokenBalance = await erc20.balanceOf(account);
+				const tokenBalanceNumber = new BigNumber(tokenBalance.toString());
+				if (this.platformName == 'Compound') {
+					const loanAmount = await this.getCompoundLoanAmount();
+					const loanAmountNumber = new BigNumber(loanAmount);
+					const maxRepayAmount = tokenBalanceNumber.lt(loanAmountNumber)
+						? tokenBalance
+						: loanAmount;
+					this.assetAmount = this.toShortAmount(maxRepayAmount, this.assetTicker);
+				}
 			}
+		},
+		async getCompoundLoanAmount() {
+			const url = "https://api.thegraph.com/subgraphs/name/destiner/compound";
+			const query = `
+				query {
+					userBalances(where: {
+						id: "${this.account.address}"
+					}) {
+						loans(first: 10) {
+							token {
+								symbol
+								supplyIndex
+								borrowIndex
+								supplyRate
+								borrowRate
+							}
+							amount
+							index
+						}
+					}
+				}`;
+			const opts = {
+				method: "POST",
+				headers: { "Content-Type": "application/json" },
+				body: JSON.stringify({ query })
+			};
+			const response = await fetch(url, opts);
+			const json = await response.json();
+			const data = json.data;
+			if (data.userBalances.length == 0) {
+				return;
+			}
+			const loans = data.userBalances[0].loans;
+			for (const loan of loans) {
+				const ticker = loan.token.symbol.substr(1);
+				if (ticker != this.assetTicker) {
+					continue;
+				}
+				const borrowIndex = loan.token.borrowIndex;
+				const loanRawAmount = loan.amount;
+				const loanIndex = loan.index;
+				// Set balances
+				if (!(ticker in this.loanBalances)) {
+					Vue.set(this.loanBalances, ticker, {});
+				}
+				const loanRawAmountNumber = new BigNumber(loanRawAmount);
+				const loanAmountNumber = loanRawAmountNumber.times(borrowIndex).div(loanIndex);
+				const loanAmount = loanAmountNumber.toString();
+				return loanAmount;
+			}
+			return '0';
 		},
 		formatRate(rateString) {
 			if (!rateString) {
