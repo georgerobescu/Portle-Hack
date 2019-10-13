@@ -399,16 +399,7 @@ export default {
 				if (ticker != this.assetTicker) {
 					continue;
 				}
-				const borrowIndex = loan.token.borrowIndex;
-				const loanRawAmount = loan.amount;
-				const loanIndex = loan.index;
-				// Set balances
-				if (!(ticker in this.loanBalances)) {
-					Vue.set(this.loanBalances, ticker, {});
-				}
-				const loanRawAmountNumber = new BigNumber(loanRawAmount);
-				const loanAmountNumber = loanRawAmountNumber.times(borrowIndex).div(loanIndex);
-				const loanAmount = loanAmountNumber.toString();
+				const loanAmount = loan.amount;
 				return loanAmount;
 			}
 			return '0';
