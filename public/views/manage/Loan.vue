@@ -347,6 +347,32 @@ export default {
 		},
 		async setMax() {
 			const account = this.account.address;
+			if (this.action == 'borrow') {
+				if (this.platformName == 'Compound') {
+					// total collateral / 1.25 - total debt
+				}
+				if (this.platformName == 'Torque') {
+					// Get minimal collateral amount required to borrow 1 token
+					const assetAddress = addresses[this.assetTicker];
+					const iTokenAddress = this.tokenAddresses['Torque'][this.assetTicker];
+					const iToken = new ethers.Contract(iTokenAddress, fulcrumTokenAbi, provider);
+					const borrowAmount = this.toLongAmount('1', this.assetTicker);
+					const leverageAmount = '4000000000000000000';
+					const initialLoanDuration = '7884000';
+					const collateral = addresses['WETH'];
+					const amount = await iToken.getDepositAmountForBorrow(borrowAmount, leverageAmount, initialLoanDuration, collateral);
+					const amountNumber = new BigNumber(amount.toString());
+					const amountWithInterestNumber = amountNumber.times(1.2);
+					// Get eth balance
+					const account = this.account.address;
+					const ethBalance = await provider.getBalance(account);
+					const ethBalanceNumber = new BigNumber(ethBalance.toString());
+					// Calculate max amount of tokens possible to borrow
+					const assetAmountNumber = ethBalanceNumber.div(amountWithInterestNumber);
+					const assetAmount = assetAmountNumber.toString();
+					this.assetAmount = assetAmount;
+				}
+			}
 			if (this.action == 'repay') {
 				const assetAddress = addresses[this.assetTicker];
 				const erc20 = new ethers.Contract(assetAddress, erc20Abi, provider);
