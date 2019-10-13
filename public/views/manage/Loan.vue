@@ -47,12 +47,14 @@ import { ethers } from 'ethers';
 
 import TxStatus from '../../components/TxStatus.vue';
 
+import prices from '../../data/prices.json';
+import decimals from '../../data/decimals.json';
+import addresses from '../../data/addresses.json';
+
 import erc20Abi from '../../data/abi/erc20.json';
 import compoundTokenAbi from '../../data/abi/compoundToken.json';
 import fulcrumTokenAbi from '../../data/abi/fulcrumToken.json';
 import bzxAbi from '../../data/abi/bzx.json';
-import decimals from '../../data/decimals.json';
-import addresses from '../../data/addresses.json';
 
 const provider = new ethers.providers.Web3Provider(window.ethereum);
 const signer = provider.getSigner();
@@ -349,7 +351,11 @@ export default {
 			const account = this.account.address;
 			if (this.action == 'borrow') {
 				if (this.platformName == 'Compound') {
-					// total collateral / 1.25 - total debt
+					const netBalance = await this.getCompoundAvailableBorrowAmount();
+					const netBalanceNumber = new BigNumber(netBalance);
+					const tokenPrice = prices[this.assetTicker];
+					const tokenAmount = netBalanceNumber.div(tokenPrice);
+					this.assetAmount = tokenAmount.toString();
 				}
 				if (this.platformName == 'Torque') {
 					// Get minimal collateral amount required to borrow 1 token
@@ -455,6 +461,98 @@ export default {
 				return loanAmount;
 			}
 			return '0';
+		},
+		// Assets times collateral factor minus liabilities (e.g. how much value I can borrow)
+		async getCompoundAvailableBorrowAmount() {
+			// Load data
+			const url = "https://api.thegraph.com/subgraphs/name/destiner/compound";
+			const query = `
+				query {
+					userBalances(where: {
+						id: "${this.account.address}"
+					}) {
+						balances(first: 10) {
+							token {
+								symbol
+								supplyIndex
+								borrowIndex
+								supplyRate
+								borrowRate
+							}
+							balance
+						}
+						loans(first: 10) {
+							token {
+								symbol
+								supplyIndex
+								borrowIndex
+								supplyRate
+								borrowRate
+							}
+							amount
+							index
+						}
+					}
+				}`;
+			const opts = {
+				method: "POST",
+				headers: { "Content-Type": "application/json" },
+				body: JSON.stringify({ query })
+			};
+			const response = await fetch(url, opts);
+			const json = await response.json();
+			const data = json.data;
+			if (data.userBalances.length == 0) {
+				return '0';
+			}
+			// TODO load dynamically
+			const collateralFactorMap = {
+				'REP': 0.5,
+				'USDC': 0.75,
+				'ETH': 0.75,
+				'BAT': 0.6,
+				'ZRX': 0.6,
+				'WBTC': 0,
+				'DAI': 0.75,
+			};
+			// Net collateral value
+			let depositTotalValue = new BigNumber(0);
+			const balances = data.userBalances[0].balances;
+			for (const balance of balances) {
+				const ticker = balance.token.symbol.substr(1);
+				const supplyIndex = balance.token.supplyIndex;
+				const assetRawBalance = balance.balance;
+				const assetRawBalanceNumber = new BigNumber(assetRawBalance);
+				const assetBalanceNumber = assetRawBalanceNumber.times(supplyIndex).div('1e18');
+				const assetBalance = assetBalanceNumber.toString();
+				const assetShortBalance = this.toShortAmount(assetBalance, ticker);
+				const assetShortBalanceNumber = new BigNumber(assetShortBalance);
+				const assetPrice = prices[ticker];
+				const assetValue = assetShortBalanceNumber.times(assetPrice);
+				const collateralFactor = collateralFactorMap[ticker];
+				const assetBorrowPower = assetValue.times(collateralFactor);
+				depositTotalValue = depositTotalValue.plus(assetBorrowPower);
+			}
+			// Net liabilities
+			let loanTotalValue = new BigNumber(0);
+			const loans = data.userBalances[0].loans;
+			for (const loan of loans) {
+				const ticker = loan.token.symbol.substr(1);
+				const borrowIndex = loan.token.borrowIndex;
+				const loanRawAmount = loan.amount;
+				const loanIndex = loan.index;
+				const loanRawAmountNumber = new BigNumber(loanRawAmount);
+				const loanAmountNumber = loanRawAmountNumber.times(borrowIndex).div(loanIndex);
+				const loanAmount = loanAmountNumber.toString();
+				const loanShortAmount = this.toShortAmount(loanAmount, ticker);
+				const loanShortAmountNumber = new BigNumber(loanShortAmount);
+				const tokenPrice = prices[ticker];
+				const loanValue = loanShortAmountNumber.times(tokenPrice);
+				loanTotalValue = loanTotalValue.plus(loanValue);
+			}
+			// Available borrow amount
+			const availableBorrowAmount = depositTotalValue.minus(loanTotalValue);
+			return availableBorrowAmount.toString();
 		},
 		formatRate(rateString) {
 			if (!rateString) {
