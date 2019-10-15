@@ -17,6 +17,8 @@ import ManageDeposit from './views/manage/Deposit.vue';
 import ManageLoan from './views/manage/Loan.vue';
 import ManageFund from './views/manage/Fund.vue';
 
+import Leverage from './views/manage/advanced/Leverage.vue';
+
 Vue.use(VueRouter);
 
 const routes = [
@@ -33,6 +35,8 @@ const routes = [
 	{ path: '/deposit/new', component: ManageDeposit },
 	{ path: '/loan/new', component: ManageLoan },
 	{ path: '/fund/new', component: ManageFund },
+
+	{ path: '/leverage', component: Leverage },
 ];
 
 const router = new VueRouter({
