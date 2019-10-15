@@ -33,6 +33,11 @@
 			</div>
 		</div>
 		<FundList :balances="fundBalances" :fundData="funds" />
+
+		<div class="header">
+			<h2>Advanced</h2>
+		</div>
+		<button @click="openLeverage()">Leverage</button>
 	</div>
 </template>
 
@@ -113,6 +118,10 @@ export default {
 		},
 		openNewFund() {
 			const path = '/fund/new';
+			this.$router.push(path);
+		},
+		openLeverage() {
+			const path = '/leverage';
 			this.$router.push(path);
 		},
 		loadAccount() {
