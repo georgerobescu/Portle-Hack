@@ -186,8 +186,4 @@ export default {
 #button-wrapper {
 	margin-top: 1em;
 }
-
-.inline {
-	display: inline-block;
-}
 </style>

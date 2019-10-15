@@ -254,10 +254,6 @@ export default {
 	display: flex;
 }
 
-.inline {
-	display: inline-block;
-}
-
 .fund-selector {
 	width: 120px;
 	margin: 0.5em 1em 0.5em 0;

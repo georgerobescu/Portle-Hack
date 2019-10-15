@@ -593,8 +593,4 @@ export default {
 .list {
 	display: flex;
 }
-
-.inline {
-	display: inline-block;
-}
 </style>

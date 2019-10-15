@@ -175,6 +175,10 @@ input.invalid {
 	background: white;
 }
 
+.inline {
+	display: inline-block;
+}
+
 .label {
 	padding: 0.5em 1.25em 0.5em 1.25em;
 	color: #393939;

@@ -556,10 +556,6 @@ export default {
 	margin-top: 1em;
 }
 
-.inline {
-	display: inline-block;
-}
-
 .swap-icon {
 	width: 12px;
 }
