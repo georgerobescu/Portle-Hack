@@ -20,9 +20,16 @@
 		</div>
 		<div id="rate-wrapper">
 			Leverage:
-			<span class="action-selector" @click="setRate('1.25')" :class="{ 'selected': rate == '1.25' }">1.25x</span>
-			<span class="action-selector" @click="setRate('1.5')" :class="{ 'selected': rate == '1.5' }">1.5x</span>
-			<span class="action-selector" @click="setRate('1.66')" :class="{ 'selected': rate == '1.66' }">1.66x</span>
+			<span v-if="platform == 'Compound'">
+				<span class="action-selector" @click="setRate('1.25')" :class="{ 'selected': rate == '1.25' }">1.25x</span>
+				<span class="action-selector" @click="setRate('1.5')" :class="{ 'selected': rate == '1.5' }">1.5x</span>
+				<span class="action-selector" @click="setRate('1.66')" :class="{ 'selected': rate == '1.66' }">1.66x</span>
+			</span>
+			<span v-if="platform == 'Fulcrum'">
+				<span class="action-selector" @click="setRate('2')" :class="{ 'selected': rate == '2' }">2x</span>
+				<span class="action-selector" @click="setRate('3')" :class="{ 'selected': rate == '3' }">3x</span>
+				<span class="action-selector" @click="setRate('4')" :class="{ 'selected': rate == '4' }">4x</span>
+			</span>
 		</div>
 		<div id="amount-wrapper">
 			<span class="input-group">
@@ -107,7 +114,13 @@ export default {
 			this.loanAsset = ticker;
 		},
 		platformSelected(platform) {
-			this.platform = platform
+			this.platform = platform;
+			if (platform == 'Compound') {
+				this.rate = '1.5';
+			}
+			if (platform == 'Fulcrum') {
+				this.rate = '3';
+			}
 		},
 		async setMax() {
 			const account = this.account.address;
