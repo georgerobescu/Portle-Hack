@@ -148,6 +148,9 @@ export default {
 			if (this.platform == 'Compound') {
 				await this.depositCompound();
 			}
+			if (this.platform == 'Fulcrum') {
+				await this.depositFulcrum();
+			}
 		},
 		async borrow() {
 			if (this.platform == 'Compound') {
@@ -187,6 +190,47 @@ export default {
 					this.txStatus = 'mining';
 					const cToken = new ethers.Contract(cTokenAddress, compoundTokenAbi, signer);
 					const tx = await cToken.mint(depositAmount);
+					const txReceipt = await provider.getTransactionReceipt(tx.hash);
+					if (txReceipt.status == 1) {
+						this.txStatus = 'success';
+					} else {
+						this.txStatus = 'failure';
+					}
+				} catch(e) {
+					this.txStatus = 'rejected';
+				}
+			}
+		},
+		async depositFulcrum() {
+			const account = this.account.address;
+			const assetAddress = addresses[this.targetAsset];
+			const iTokenAddress = this.tokenAddresses['Fulcrum'][this.targetAsset];
+			const iToken = new ethers.Contract(iTokenAddress, fulcrumTokenAbi, signer);
+			const positionAmountNumber = new BigNumber(this.amount);
+			const mintAmountNumber = positionAmountNumber.div(this.rate);
+			const mintAmount = this.toLongAmount(mintAmountNumber, this.targetAsset);
+			if (this.targetAsset == 'ETH') {
+				try {
+					this.txStatus = 'mining';
+					const valueNumber = new BigNumber(mintAmount);
+					const options = {
+						value: '0x' + valueNumber.toString(16),
+					};
+					const tx = await iToken.mintWithEther(account, options);
+					const txReceipt = await provider.getTransactionReceipt(tx.hash);
+					if (txReceipt.status == 1) {
+						this.txStatus = 'success';
+					} else {
+						this.txStatus = 'failure';
+					}
+				} catch(e) {
+					this.txStatus = 'rejected';
+				}
+			} else {
+				await this.checkAllowance(iTokenAddress, assetAddress, mintAmount);
+				try {
+					this.txStatus = 'mining';
+					const tx = await iToken.mint(account, mintAmount);
 					const txReceipt = await provider.getTransactionReceipt(tx.hash);
 					if (txReceipt.status == 1) {
 						this.txStatus = 'success';
