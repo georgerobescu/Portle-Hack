@@ -51,6 +51,7 @@ import TxStatus from '../../../components/TxStatus.vue';
 import erc20Abi from '../../../data/abi/erc20.json';
 import kyberProxyAbi from '../../../data/abi/kyberProxy.json';
 import compoundTokenAbi from '../../../data/abi/compoundToken.json';
+import compoundEtherAbi from '../../../data/abi/compoundEther.json';
 import fulcrumTokenAbi from '../../../data/abi/fulcrumToken.json';
 
 import prices from '../../../data/prices.json';
@@ -76,7 +77,7 @@ export default {
 			loanAsset: 'DAI',
 			platform: 'Compound',
 			rate: '1.5',
-			amount: '10',
+			amount: '1',
 			tokenAddresses: {
 				'Compound': {},
 				'Fulcrum': {},
@@ -159,22 +160,42 @@ export default {
 		async depositCompound() {
 			const assetAddress = addresses[this.targetAsset];
 			const cTokenAddress = this.tokenAddresses['Compound'][this.targetAsset];
-			const cToken = new ethers.Contract(cTokenAddress, compoundTokenAbi, signer);
 			const positionAmountNumber = new BigNumber(this.amount);
 			const depositAmountNumber = positionAmountNumber.div(this.rate);
 			const depositAmount = this.toLongAmount(depositAmountNumber, this.targetAsset);
-			await this.checkAllowance(cTokenAddress, assetAddress, depositAmount);
-			try {
-				this.txStatus = 'mining';
-				const tx = await cToken.mint(depositAmount);
-				const txReceipt = await provider.getTransactionReceipt(tx.hash);
-				if (txReceipt.status == 1) {
-					this.txStatus = 'success';
-				} else {
-					this.txStatus = 'failure';
+			if (this.targetAsset == 'ETH') {
+				try {
+					this.txStatus = 'mining';
+					const cEther = new ethers.Contract(cTokenAddress, compoundEtherAbi, signer);
+					const valueNumber = new BigNumber(depositAmount);
+					const options = {
+						value: '0x' + valueNumber.toString(16),
+					};
+					const tx = await cEther.mint(options);
+					const txReceipt = await provider.getTransactionReceipt(tx.hash);
+					if (txReceipt.status == 1) {
+						this.txStatus = 'success';
+					} else {
+						this.txStatus = 'failure';
+					}
+				} catch(e) {
+					this.txStatus = 'rejected';
 				}
-			} catch(e) {
-				this.txStatus = 'rejected';
+			} else {
+				await this.checkAllowance(cTokenAddress, assetAddress, depositAmount);
+				try {
+					this.txStatus = 'mining';
+					const cToken = new ethers.Contract(cTokenAddress, compoundTokenAbi, signer);
+					const tx = await cToken.mint(depositAmount);
+					const txReceipt = await provider.getTransactionReceipt(tx.hash);
+					if (txReceipt.status == 1) {
+						this.txStatus = 'success';
+					} else {
+						this.txStatus = 'failure';
+					}
+				} catch(e) {
+					this.txStatus = 'rejected';
+				}
 			}
 		},
 		async borrowCompound() {
@@ -242,6 +263,27 @@ export default {
 				} catch(e) {
 					this.txStatus = 'rejected';
 				}
+			}
+		},
+		async checkAllowance(spender, address, amount) {
+			const uintMax = '115792089237316195423570985008687907853269984665640564039457584007913129639935';
+			const account = this.account.address;
+			const inputToken = new ethers.Contract(address, erc20Abi, signer);
+			const inputTokenAllowance = await inputToken.allowance(account, spender);
+			if (inputTokenAllowance.gte(amount)) {
+				return;
+			}
+			try {
+				this.txStatus = 'mining';
+				const tx = await inputToken.approve(spender, uintMax);
+				const txReceipt = await provider.getTransactionReceipt(tx.hash);
+				if (txReceipt.status == 1) {
+					this.txStatus = 'success';
+				} else {
+					this.txStatus = 'failure';
+				}
+			} catch(e) {
+				this.txStatus = 'rejected';
 			}
 		},
 		async loadCompound() {
