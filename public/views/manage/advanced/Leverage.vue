@@ -16,7 +16,7 @@
 			</span>
 			against
 			<span class="input-group">
-				<Picker :value="loanAsset" :list="loanAssets" :onSelect="loanAssetSelected" class="inline"/>
+				<Picker :value="accountAsset" :list="accountAssets" :onSelect="accountAssetSelected" class="inline"/>
 			</span>
 			using
 			<span class="input-group">
@@ -101,7 +101,7 @@ export default {
 			txStatus: 'none',
 			action: 'long',
 			targetAsset: 'ETH',
-			loanAsset: 'DAI',
+			accountAsset: 'DAI',
 			platform: 'Compound',
 			rate: '1.5',
 			amount: '1',
@@ -146,8 +146,8 @@ export default {
 		targetAssetSelected(ticker) {
 			this.targetAsset = ticker;
 		},
-		loanAssetSelected(ticker) {
-			this.loanAsset = ticker;
+		accountAssetSelected(ticker) {
+			this.accountAsset = ticker;
 		},
 		platformSelected(platform) {
 			this.platform = platform;
@@ -187,9 +187,9 @@ export default {
 		},
 		async long() {
 			if (this.platform == 'Compound') {
-				await this.depositCompound();
-				await this.borrowCompound();
-				await this.tradeKyber();
+				await this.longDepositCompound();
+				await this.longBorrowCompound();
+				await this.longTradeKyber();
 			}
 			if (this.platform == 'Fulcrum') {
 				await this.longFulcrum();
@@ -211,7 +211,7 @@ export default {
 				auth,
 			};
 		},
-		async depositCompound() {
+		async longDepositCompound() {
 			const assetAddress = addresses[this.targetAsset];
 			const cTokenAddress = this.tokenAddresses['Compound'][this.targetAsset];
 			const positionAmountNumber = new BigNumber(this.amount);
@@ -252,15 +252,15 @@ export default {
 				}
 			}
 		},
-		async borrowCompound() {
-			const assetAddress = addresses[this.loanAsset];
-			const cTokenAddress = this.tokenAddresses['Compound'][this.loanAsset];
+		async longBorrowCompound() {
+			const assetAddress = addresses[this.accountAsset];
+			const cTokenAddress = this.tokenAddresses['Compound'][this.accountAsset];
 			const cToken = new ethers.Contract(cTokenAddress, compoundTokenAbi, signer);
 			const positionAmountNumber = new BigNumber(this.amount);
 			const depositAmountNumber = positionAmountNumber.div(this.rate);
 			const borrowTargetAmountNumber = positionAmountNumber.minus(depositAmountNumber);
-			const borrowAmountNumber = borrowTargetAmountNumber.times(prices[this.targetAsset]).div(prices[this.loanAsset]);
-			const borrowAmount = this.toLongAmount(borrowAmountNumber, this.loanAsset);
+			const borrowAmountNumber = borrowTargetAmountNumber.times(prices[this.targetAsset]).div(prices[this.accountAsset]);
+			const borrowAmount = this.toLongAmount(borrowAmountNumber, this.accountAsset);
 			try {
 				this.txStatus = 'mining';
 				const tx = await cToken.borrow(borrowAmount);
@@ -274,18 +274,18 @@ export default {
 				this.txStatus = 'rejected';
 			}
 		},
-		async tradeKyber() {
-			const assetAddress = addresses[this.loanAsset];
+		async longTradeKyber() {
+			const assetAddress = addresses[this.accountAsset];
 			const positionAmountNumber = new BigNumber(this.amount);
 			const depositAmountNumber = positionAmountNumber.div(this.rate);
 			const borrowTargetAmountNumber = positionAmountNumber.minus(depositAmountNumber);
-			const borrowAmountNumber = borrowTargetAmountNumber.times(prices[this.targetAsset]).div(prices[this.loanAsset]);
+			const borrowAmountNumber = borrowTargetAmountNumber.times(prices[this.targetAsset]).div(prices[this.accountAsset]);
 			const minConversionRate = '1';
 			const kyberProxy = new ethers.Contract(kyberProxyAddress, kyberProxyAbi, signer);
 			if (this.targetAsset == 'ETH') {
 				// Token to eth
-				const inputAddress = this.getTokenAddress(this.loanAsset);
-				const inputAmount = this.toLongAmount(borrowAmountNumber, this.loanAsset);
+				const inputAddress = this.getTokenAddress(this.accountAsset);
+				const inputAmount = this.toLongAmount(borrowAmountNumber, this.accountAsset);
 				await this.checkAllowance(kyberProxyAddress, inputAddress, inputAmount);
 				try {
 					this.txStatus = 'mining';
@@ -301,8 +301,8 @@ export default {
 				}
 			} else {
 				// Token to token
-				const inputAddress = this.getTokenAddress(this.loanAsset);
-				const inputAmount = this.toLongAmount(borrowAmountNumber, this.loanAsset);
+				const inputAddress = this.getTokenAddress(this.accountAsset);
+				const inputAmount = this.toLongAmount(borrowAmountNumber, this.accountAsset);
 				const outputAddress = this.getTokenAddress(this.targetAsset);
 				await this.checkAllowance(kyberProxyAddress, inputAddress, inputAmount);
 				try {
@@ -323,7 +323,7 @@ export default {
 			const account = this.account.address;
 			const uintMax = '115792089237316195423570985008687907853269984665640564039457584007913129639935';
 			const assetAddress = this.getTokenAddress(this.targetAsset);
-			const pTokenAddress = this.getFulcrumPositionTokenAddress(this.targetAsset, this.loanAsset, true, this.rate);
+			const pTokenAddress = this.getFulcrumPositionTokenAddress(this.targetAsset, this.accountAsset, true, this.rate);
 			const pToken = new ethers.Contract(pTokenAddress, fulcrumPositionTokenAbi, signer);
 			const positionAmountNumber = new BigNumber(this.amount);
 			const depositAmountNumber = positionAmountNumber.div(this.rate);
@@ -364,13 +364,13 @@ export default {
 		async shortFulcrum() {
 			const account = this.account.address;
 			const uintMax = '115792089237316195423570985008687907853269984665640564039457584007913129639935';
-			const assetAddress = this.getTokenAddress(this.loanAsset);
-			const pTokenAddress = this.getFulcrumPositionTokenAddress(this.targetAsset, this.loanAsset, false, this.rate);
+			const assetAddress = this.getTokenAddress(this.accountAsset);
+			const pTokenAddress = this.getFulcrumPositionTokenAddress(this.targetAsset, this.accountAsset, false, this.rate);
 			const pToken = new ethers.Contract(pTokenAddress, fulcrumPositionTokenAbi, signer);
 			const positionAmountNumber = new BigNumber(this.amount);
 			const targetAssetPrice = prices[this.targetAsset];
-			const loanAssetPrice = prices[this.loanAsset];
-			const depositAmountNumber = positionAmountNumber.times(targetAssetPrice).div(loanAssetPrice).div(this.rate);
+			const accountAssetPrice = prices[this.accountAsset];
+			const depositAmountNumber = positionAmountNumber.times(targetAssetPrice).div(accountAssetPrice).div(this.rate);
 			const depositAmount = this.toLongAmount(depositAmountNumber, this.targetAsset);
 			await this.checkAllowance(pTokenAddress, assetAddress, depositAmount);
 			try {
@@ -479,11 +479,11 @@ export default {
 			}
 			return addresses[ticker];
 		},
-		getFulcrumPositionTokenAddress(targetAssetTicker, loanAssetTicker, isLong, rate) {
-			const loanAssetTickerPrefix = loanAssetTicker == 'DAI' ? 'd' : 'u';
+		getFulcrumPositionTokenAddress(targetAssetTicker, accountAssetTicker, isLong, rate) {
+			const accountAssetTickerPrefix = accountAssetTicker == 'DAI' ? 'd' : 'u';
 			const isLongTickerPrefix = isLong ? 'L' : 's';
 			const rateSuffix = rate == '1' ? '' : `${rate}x`;
-			const positionTokenTicker = `${loanAssetTickerPrefix}${isLongTickerPrefix}${targetAssetTicker}${rateSuffix}`;
+			const positionTokenTicker = `${accountAssetTickerPrefix}${isLongTickerPrefix}${targetAssetTicker}${rateSuffix}`;
 			const positionTokenMap = {
 				'dLETH2x': '0x4ef522f0de44946e3eea716fa071c12e89d30774',
 				'dLETH3x': '0x19a5c979e96823a79f05d3e7658ddbc2d50bd326',
@@ -550,7 +550,7 @@ export default {
 		targetAssets() {
 			return ['ETH', 'WBTC', 'ZRX', 'REP'];
 		},
-		loanAssets() {
+		accountAssets() {
 			return ['DAI', 'USDC'];
 		},
 		platforms() {
