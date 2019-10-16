@@ -18,6 +18,7 @@ import ManageLoan from './views/manage/Loan.vue';
 import ManageFund from './views/manage/Fund.vue';
 
 import Leverage from './views/manage/advanced/Leverage.vue';
+import CarryTrade from './views/manage/advanced/CarryTrade.vue';
 
 Vue.use(VueRouter);
 
@@ -37,6 +38,7 @@ const routes = [
 	{ path: '/fund/new', component: ManageFund },
 
 	{ path: '/leverage', component: Leverage },
+	{ path: '/carry-trade', component: CarryTrade },
 ];
 
 const router = new VueRouter({
