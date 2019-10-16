@@ -38,6 +38,7 @@
 			<h2>Advanced</h2>
 		</div>
 		<button @click="openLeverage()">Leverage</button>
+		<button @click="openCarryTrade()">Carry trade</button>
 	</div>
 </template>
 
@@ -122,6 +123,10 @@ export default {
 		},
 		openLeverage() {
 			const path = '/leverage';
+			this.$router.push(path);
+		},
+		openCarryTrade() {
+			const path = '/carry-trade';
 			this.$router.push(path);
 		},
 		loadAccount() {
