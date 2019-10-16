@@ -21,9 +21,9 @@
 			</span>
 		</div>
 		<div id="rate-wrapper">
-			<p>USDC borrow rate: 8.9%</p>
-			<p>DAI supply rate: 10.1%</p>
-			<p>Net rate: 1.2%</p>
+			<p>USDC borrow rate: {{ formatRate(fundingRate) }}</p>
+			<p>DAI supply rate: {{ formatRate(lendingRate) }}</p>
+			<p>Net rate: {{ formatRate(netRate) }}</p>
 		</div>
 		<div id="amount-picker-wrapper">
 			<span class="input-group">
@@ -76,7 +76,20 @@ export default {
 			lendingAsset: 'DAI',
 			platform: 'Compound',
 			amount: '1',
+			rates: {
+				supply: {},
+				borrow: {},
+			},
 		}
+	},
+	mounted() {
+		this.loadAccount();
+		if (!this.account) {
+			this.$router.push('/login');
+			return;
+		}
+		this.loadCompound();
+		this.loadFulcrum();
 	},
 	methods: {
 		depositAssetSelected(depositAsset) {
@@ -108,6 +121,101 @@ export default {
 		},
 		async trade() {
 		},
+		loadAccount() {
+			const address = localStorage.getItem('address');
+			const auth = localStorage.getItem('auth') == 'true';
+			if (!address) {
+				return;
+			}
+			this.account = {
+				address,
+				auth,
+			};
+		},
+		async loadCompound() {
+			const url = "https://api.thegraph.com/subgraphs/name/destiner/compound";
+			const query = `
+				query {
+					tokens {
+						symbol
+						supplyRate
+						borrowRate
+					}
+				}`;
+			const opts = {
+				method: "POST",
+				headers: { "Content-Type": "application/json" },
+				body: JSON.stringify({ query })
+			};
+			const response = await fetch(url, opts);
+			const json = await response.json();
+			const data = json.data;
+			const tokens = data.tokens;
+			for (const token of tokens) {
+				const ticker = token.symbol.substr(1);
+				// Set rates
+				const supplyRawRate = token.supplyRate;
+				const borrowRawRate = token.borrowRate;
+				const supplyRawRateNumber = new BigNumber(supplyRawRate);
+				const borrowRawRateNumber = new BigNumber(borrowRawRate);
+				const supplyRateNumber = supplyRawRateNumber.times('2102400').div('1e18');
+				const borrowRateNumber = borrowRawRateNumber.times('2102400').div('1e18');
+				const supplyRate = supplyRateNumber.toString();
+				const borrowRate = borrowRateNumber.toString();
+				if (!(ticker in this.rates.supply)) {
+					Vue.set(this.rates.supply, ticker, {});
+				}
+				if (!(ticker in this.rates.borrow)) {
+					Vue.set(this.rates.borrow, ticker, {});
+				}
+				Vue.set(this.rates.supply[ticker], 'Compound', supplyRate);
+				Vue.set(this.rates.borrow[ticker], 'Compound', borrowRate);
+			}
+		},
+		async loadFulcrum() {
+			const url = "https://api.thegraph.com/subgraphs/name/destiner/fulcrum";
+			const query = `
+				query {
+					tokens {
+						symbol
+						supplyRate
+						borrowRate
+					}
+				}`;
+			const opts = {
+				method: "POST",
+				headers: { "Content-Type": "application/json" },
+				body: JSON.stringify({ query })
+			};
+			const response = await fetch(url, opts);
+			const json = await response.json();
+			const data = json.data;
+			const tokens = data.tokens;
+			for (const token of tokens) {
+				const ticker = token.symbol.substr(1);
+				// Set rates
+				const supplyRawRate = token.supplyRate;
+				const borrowRawRate = token.borrowRate;
+				const supplyRawRateNumber = new BigNumber(supplyRawRate);
+				const borrowRawRateNumber = new BigNumber(borrowRawRate);
+				const supplyRateNumber = supplyRawRateNumber.div('1e18').div('1e2');
+				const borrowRateNumber = borrowRawRateNumber.div('1e18').div('1e2');
+				const supplyRate = supplyRateNumber.toString();
+				const borrowRate = borrowRateNumber.toString();
+				if (!(ticker in this.rates.supply)) {
+					Vue.set(this.rates.supply, ticker, {});
+				}
+				if (!(ticker in this.rates.borrow)) {
+					Vue.set(this.rates.borrow, ticker, {});
+				}
+				Vue.set(this.rates.supply[ticker], 'Fulcrum', supplyRate);
+				Vue.set(this.rates.borrow[ticker], 'Fulcrum', borrowRate);
+			}
+		},
+		formatRate(rateString) {
+			const rate = parseFloat(rateString);
+			return `${(rate * 100).toFixed(2)}%`;
+		},
 	},
 	computed: {
 		depositAssets() {
@@ -118,6 +226,34 @@ export default {
 		},
 		platforms() {
 			return ['Compound', 'Fulcrum'];
+		},
+		fundingRate() {
+			const assetRates = this.rates.borrow[this.fundingAsset];
+			if (!assetRates) {
+				return '0';
+			}
+			const rate = assetRates[this.platform];
+			if (!rate) {
+				return '0';
+			}
+			return rate;
+		},
+		lendingRate() {
+			const assetRates = this.rates.borrow[this.lendingAsset];
+			if (!assetRates) {
+				return '0';
+			}
+			const rate = assetRates[this.platform];
+			if (!rate) {
+				return '0';
+			}
+			return rate;
+		},
+		netRate() {
+			const fundingRate = parseFloat(this.fundingRate);
+			const lendingRate = parseFloat(this.lendingRate);
+			const netRate = fundingRate - lendingRate;
+			return netRate.toString();
 		},
 	}
 }
