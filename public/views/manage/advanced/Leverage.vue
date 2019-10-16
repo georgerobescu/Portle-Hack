@@ -54,7 +54,6 @@
 		<div id="amount-wrapper">
 			<span class="input-group">
 				<span class="label">Position</span>
-				<span class="max-label" @click="setMax()">MAX</span>
 				<input class="amount" v-model="amount">
 				<span class="label label-ghost label-right inline">{{ targetAsset }}</span>
 			</span>
@@ -166,20 +165,6 @@ export default {
 				if (this.platform == 'Fulcrum') {
 					this.rate = '2';
 				}
-			}
-		},
-		async setMax() {
-			const account = this.account.address;
-			if (this.targetAsset == 'ETH') {
-				const etherBalance = await provider.getBalance(account);
-				const amount = this.toShortAmount(etherBalance.toString(), this.targetAsset);
-				this.amount = amount;
-			} else {
-				const inputAddress = this.getTokenAddress(this.targetAsset);
-				const inputToken = new ethers.Contract(inputAddress, erc20Abi, provider);
-				const inputTokenBalance = await inputToken.balanceOf(account);
-				const amount = this.toShortAmount(inputTokenBalance.toString(), this.targetAsset);
-				this.amount = amount;
 			}
 		},
 		async hideStatus() {
