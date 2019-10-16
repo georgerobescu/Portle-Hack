@@ -196,6 +196,11 @@ export default {
 			}
 		},
 		async short() {
+			if (this.platform == 'Compound') {
+				await this.shortDepositCompound();
+				await this.shortBorrowCompound();
+				await this.shortTradeKyber();
+			}
 			if (this.platform == 'Fulcrum') {
 				await this.shortFulcrum();
 			}
@@ -350,6 +355,111 @@ export default {
 				try {
 					this.txStatus = 'mining';
 					const tx = await pToken.mintWithToken(account, assetAddress, depositAmount, uintMax);
+					const txReceipt = await provider.getTransactionReceipt(tx.hash);
+					if (txReceipt.status == 1) {
+						this.txStatus = 'success';
+					} else {
+						this.txStatus = 'failure';
+					}
+				} catch(e) {
+					this.txStatus = 'rejected';
+				}
+			}
+		},
+		async shortDepositCompound() {
+			const assetAddress = addresses[this.accountAsset];
+			const cTokenAddress = this.tokenAddresses['Compound'][this.accountAsset];
+			const positionAmountNumber = new BigNumber(this.amount);
+			const targetAssetPrice = prices[this.targetAsset];
+			const accountAssetPrice = prices[this.accountAsset];
+			const depositAmountNumber = positionAmountNumber.times(targetAssetPrice).div(accountAssetPrice).div(this.rate);
+			const depositAmount = this.toLongAmount(depositAmountNumber, this.accountAsset);
+			if (this.accountAsset == 'ETH') {
+				try {
+					this.txStatus = 'mining';
+					const cEther = new ethers.Contract(cTokenAddress, compoundEtherAbi, signer);
+					const valueNumber = new BigNumber(depositAmount);
+					const options = {
+						value: '0x' + valueNumber.toString(16),
+					};
+					const tx = await cEther.mint(options);
+					const txReceipt = await provider.getTransactionReceipt(tx.hash);
+					if (txReceipt.status == 1) {
+						this.txStatus = 'success';
+					} else {
+						this.txStatus = 'failure';
+					}
+				} catch(e) {
+					this.txStatus = 'rejected';
+				}
+			} else {
+				await this.checkAllowance(cTokenAddress, assetAddress, depositAmount);
+				try {
+					this.txStatus = 'mining';
+					const cToken = new ethers.Contract(cTokenAddress, compoundTokenAbi, signer);
+					const tx = await cToken.mint(depositAmount);
+					const txReceipt = await provider.getTransactionReceipt(tx.hash);
+					if (txReceipt.status == 1) {
+						this.txStatus = 'success';
+					} else {
+						this.txStatus = 'failure';
+					}
+				} catch(e) {
+					this.txStatus = 'rejected';
+				}
+			}
+		},
+		async shortBorrowCompound() {
+			const assetAddress = addresses[this.targetAsset];
+			const cTokenAddress = this.tokenAddresses['Compound'][this.targetAsset];
+			const cToken = new ethers.Contract(cTokenAddress, compoundTokenAbi, signer);
+			const borrowAmount = this.toLongAmount(this.amount, this.targetAsset);
+			try {
+				this.txStatus = 'mining';
+				const tx = await cToken.borrow(borrowAmount);
+				const txReceipt = await provider.getTransactionReceipt(tx.hash);
+				if (txReceipt.status == 1) {
+					this.txStatus = 'success';
+				} else {
+					this.txStatus = 'failure';
+				}
+			} catch(e) {
+				this.txStatus = 'rejected';
+			}
+		},
+		async shortTradeKyber() {
+			const assetAddress = addresses[this.accountAsset];
+			const minConversionRate = '1';
+			const kyberProxy = new ethers.Contract(kyberProxyAddress, kyberProxyAbi, signer);
+			if (this.targetAsset == 'ETH') {
+				// Eth to token
+				const outputAddress = this.getTokenAddress(this.accountAsset);
+				const value = this.toLongAmount(this.amount, 'ETH');
+				const valueNumber = new BigNumber(value);
+				const options = {
+					value: '0x' + valueNumber.toString(16),
+				};
+				try {
+					this.txStatus = 'mining';
+					const tx = await kyberProxy.swapEtherToToken(outputAddress, minConversionRate, options);
+					const txReceipt = await provider.getTransactionReceipt(tx.hash);
+					if (txReceipt.status == 1) {
+						this.txStatus = 'success';
+					} else {
+						this.txStatus = 'failure';
+					}
+				} catch(e) {
+					this.txStatus = 'rejected';
+				}
+			} else {
+				// Token to token
+				const inputAddress = this.getTokenAddress(this.targetAsset);
+				const inputAmount = this.toLongAmount(this.amount, this.targetAsset);
+				const outputAddress = this.getTokenAddress(this.accountAsset);
+				await this.checkAllowance(kyberProxyAddress, inputAddress, inputAmount);
+				try {
+					this.txStatus = 'mining';
+					const tx = await kyberProxy.swapTokenToToken(inputAddress, inputAmount, outputAddress, minConversionRate);
 					const txReceipt = await provider.getTransactionReceipt(tx.hash);
 					if (txReceipt.status == 1) {
 						this.txStatus = 'success';
