@@ -196,6 +196,9 @@ export default {
 			}
 		},
 		async short() {
+			if (this.platform == 'Fulcrum') {
+				await this.shortFulcrum();
+			}
 		},
 		loadAccount() {
 			const address = localStorage.getItem('address');
@@ -356,6 +359,31 @@ export default {
 				} catch(e) {
 					this.txStatus = 'rejected';
 				}
+			}
+		},
+		async shortFulcrum() {
+			const account = this.account.address;
+			const uintMax = '115792089237316195423570985008687907853269984665640564039457584007913129639935';
+			const assetAddress = this.getTokenAddress(this.loanAsset);
+			const pTokenAddress = this.getFulcrumPositionTokenAddress(this.targetAsset, this.loanAsset, false, this.rate);
+			const pToken = new ethers.Contract(pTokenAddress, fulcrumPositionTokenAbi, signer);
+			const positionAmountNumber = new BigNumber(this.amount);
+			const targetAssetPrice = prices[this.targetAsset];
+			const loanAssetPrice = prices[this.loanAsset];
+			const depositAmountNumber = positionAmountNumber.times(targetAssetPrice).div(loanAssetPrice).div(this.rate);
+			const depositAmount = this.toLongAmount(depositAmountNumber, this.targetAsset);
+			await this.checkAllowance(pTokenAddress, assetAddress, depositAmount);
+			try {
+				this.txStatus = 'mining';
+				const tx = await pToken.mintWithToken(account, assetAddress, depositAmount, uintMax);
+				const txReceipt = await provider.getTransactionReceipt(tx.hash);
+				if (txReceipt.status == 1) {
+					this.txStatus = 'success';
+				} else {
+					this.txStatus = 'failure';
+				}
+			} catch(e) {
+				this.txStatus = 'rejected';
 			}
 		},
 		async checkAllowance(spender, address, amount) {
