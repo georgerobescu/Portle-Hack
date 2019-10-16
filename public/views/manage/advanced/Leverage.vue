@@ -5,7 +5,12 @@
 			<span class="action-selector" @click="selectAction('short')" :class="{ 'selected': action == 'short' }">Short</span>
 		</div>
 		<div id="picker-wrapper">
-			Long
+			<span v-if="action == 'long'">
+				Long
+			</span>
+			<span v-if="action =='short'">
+				Short
+			</span>
 			<span class="input-group">
 				<Picker :value="targetAsset" :list="targetAssets" :onSelect="targetAssetSelected" class="inline"/>
 			</span>
@@ -20,15 +25,30 @@
 		</div>
 		<div id="rate-wrapper">
 			Leverage:
-			<span v-if="platform == 'Compound'">
-				<span class="action-selector" @click="setRate('1.25')" :class="{ 'selected': rate == '1.25' }">1.25x</span>
-				<span class="action-selector" @click="setRate('1.5')" :class="{ 'selected': rate == '1.5' }">1.5x</span>
-				<span class="action-selector" @click="setRate('1.66')" :class="{ 'selected': rate == '1.66' }">1.66x</span>
+			<span v-if="action == 'long'">
+				<span v-if="platform == 'Compound'">
+					<span class="action-selector" @click="setRate('1.25')" :class="{ 'selected': rate == '1.25' }">1.25x</span>
+					<span class="action-selector" @click="setRate('1.5')" :class="{ 'selected': rate == '1.5' }">1.5x</span>
+					<span class="action-selector" @click="setRate('1.66')" :class="{ 'selected': rate == '1.66' }">1.66x</span>
+				</span>
+				<span v-if="platform == 'Fulcrum'">
+					<span class="action-selector" @click="setRate('2')" :class="{ 'selected': rate == '2' }">2x</span>
+					<span class="action-selector" @click="setRate('3')" :class="{ 'selected': rate == '3' }">3x</span>
+					<span class="action-selector" @click="setRate('4')" :class="{ 'selected': rate == '4' }">4x</span>
+				</span>
 			</span>
-			<span v-if="platform == 'Fulcrum'">
-				<span class="action-selector" @click="setRate('2')" :class="{ 'selected': rate == '2' }">2x</span>
-				<span class="action-selector" @click="setRate('3')" :class="{ 'selected': rate == '3' }">3x</span>
-				<span class="action-selector" @click="setRate('4')" :class="{ 'selected': rate == '4' }">4x</span>
+			<span v-if="action == 'short'">
+				<span v-if="platform == 'Compound'">
+					<span class="action-selector" @click="setRate('0.25')" :class="{ 'selected': rate == '0.25' }">.25x</span>
+					<span class="action-selector" @click="setRate('0.5')" :class="{ 'selected': rate == '0.5' }">.5x</span>
+					<span class="action-selector" @click="setRate('0.666')" :class="{ 'selected': rate == '0.666' }">.666x</span>
+				</span>
+				<span v-if="platform == 'Fulcrum'">
+					<span class="action-selector" @click="setRate('1')" :class="{ 'selected': rate == '1' }">1x</span>
+					<span class="action-selector" @click="setRate('2')" :class="{ 'selected': rate == '2' }">2x</span>
+					<span class="action-selector" @click="setRate('3')" :class="{ 'selected': rate == '3' }">3x</span>
+					<span class="action-selector" @click="setRate('4')" :class="{ 'selected': rate == '4' }">4x</span>
+				</span>
 			</span>
 		</div>
 		<div id="amount-wrapper">
@@ -103,6 +123,22 @@ export default {
 	methods: {
 		selectAction(action) {
 			this.action = action;
+			if (this.action == 'long') {
+				if (this.platform == 'Compound') {
+					this.rate = '1.5';
+				}
+				if (this.platform == 'Fulcrum') {
+					this.rate = '3';
+				}
+			}
+			if (this.action == 'short') {
+				if (this.platform == 'Compound') {
+					this.rate = '0.5';
+				}
+				if (this.platform == 'Fulcrum') {
+					this.rate = '2';
+				}
+			}
 		},
 		setRate(rate) {
 			this.rate = rate;
@@ -115,11 +151,21 @@ export default {
 		},
 		platformSelected(platform) {
 			this.platform = platform;
-			if (platform == 'Compound') {
-				this.rate = '1.5';
+			if (this.action == 'long') {
+				if (this.platform == 'Compound') {
+					this.rate = '1.5';
+				}
+				if (this.platform == 'Fulcrum') {
+					this.rate = '3';
+				}
 			}
-			if (platform == 'Fulcrum') {
-				this.rate = '3';
+			if (this.action == 'short') {
+				if (this.platform == 'Compound') {
+					this.rate = '0.5';
+				}
+				if (this.platform == 'Fulcrum') {
+					this.rate = '2';
+				}
 			}
 		},
 		async setMax() {
