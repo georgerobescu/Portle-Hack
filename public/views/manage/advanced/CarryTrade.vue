@@ -21,8 +21,8 @@
 			</span>
 		</div>
 		<div id="rate-wrapper">
-			<p>USDC borrow rate: {{ formatRate(fundingRate) }}</p>
-			<p>DAI supply rate: {{ formatRate(lendingRate) }}</p>
+			<p>{{ fundingAsset }} borrow rate: {{ formatRate(fundingRate) }}</p>
+			<p>{{ lendingAsset }} supply rate: {{ formatRate(lendingRate) }}</p>
 			<p>Net rate: {{ formatRate(netRate) }}</p>
 		</div>
 		<div id="amount-picker-wrapper">
@@ -239,7 +239,7 @@ export default {
 			return rate;
 		},
 		lendingRate() {
-			const assetRates = this.rates.borrow[this.lendingAsset];
+			const assetRates = this.rates.supply[this.lendingAsset];
 			if (!assetRates) {
 				return '0';
 			}
@@ -250,9 +250,9 @@ export default {
 			return rate;
 		},
 		netRate() {
-			const fundingRate = parseFloat(this.fundingRate);
 			const lendingRate = parseFloat(this.lendingRate);
-			const netRate = fundingRate - lendingRate;
+			const fundingRate = parseFloat(this.fundingRate);
+			const netRate = lendingRate - fundingRate;
 			return netRate.toString();
 		},
 	}
