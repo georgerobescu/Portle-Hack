@@ -39,6 +39,7 @@
 		</div>
 		<button @click="openLeverage()">Leverage</button>
 		<button @click="openCarryTrade()">Carry trade</button>
+		<button @click="openDepositBridge()">Deposit bridge</button>
 	</div>
 </template>
 
@@ -127,6 +128,10 @@ export default {
 		},
 		openCarryTrade() {
 			const path = '/carry-trade';
+			this.$router.push(path);
+		},
+		openDepositBridge() {
+			const path = '/deposit-bridge';
 			this.$router.push(path);
 		},
 		loadAccount() {
