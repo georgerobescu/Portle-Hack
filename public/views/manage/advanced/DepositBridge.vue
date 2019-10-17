@@ -47,7 +47,7 @@ import TxStatus from '../../../components/TxStatus.vue';
 import erc20Abi from '../../../data/abi/erc20.json';
 import compoundTokenAbi from '../../../data/abi/compoundToken.json';
 import compoundEtherAbi from '../../../data/abi/compoundEther.json';
-import fulcrumPositionTokenAbi from '../../../data/abi/fulcrumPositionToken.json';
+import fulcrumTokenAbi from '../../../data/abi/fulcrumToken.json';
 
 import prices from '../../../data/prices.json';
 import decimals from '../../../data/decimals.json';
@@ -69,13 +69,21 @@ export default {
 			inPlatform: 'Compound',
 			outPlatform: 'Fulcrum',
 			amount: '100',
+			rates: {
+				Compound: {},
+				Fulcrum: {},
+			},
+			indices: {
+				Compound: {},
+				Fulcrum: {},
+			},
 			tokenAddresses: {
 				Compound: {},
 				Fulcrum: {},
 			},
-			rates: {
-				supply: {},
-				borrow: {},
+			balances: {
+				Compound: {},
+				Fulcrum: {},
 			},
 		}
 	},
@@ -113,8 +121,9 @@ export default {
 		hideStatus() {
 			this.txStatus = 'none';
 		},
-		migrate() {
-
+		async migrate() {
+			await this.withdraw();
+			await this.deposit();
 		},
 		loadAccount() {
 			const address = localStorage.getItem('address');
@@ -135,7 +144,17 @@ export default {
 						symbol
 						address
 						supplyRate
-						borrowRate
+						supplyIndex
+					}
+					userBalances(where: {
+						id: "${this.account.address}"
+					}) {
+						balances {
+							token {
+								symbol
+							}
+							balance
+						}
 					}
 				}`;
 			const opts = {
@@ -150,24 +169,23 @@ export default {
 			for (const token of tokens) {
 				const ticker = token.symbol.substr(1);
 				const address = token.address;
+				const rawRate = token.supplyRate;
+				const index = token.supplyIndex;
+				const rawRateNumber = new BigNumber(rawRate);
+				const rateNumber = rawRateNumber.times('2102400').div('1e18');
+				const rate = rateNumber.toString();
 				Vue.set(this.tokenAddresses['Compound'], ticker, address);
-				// Set rates
-				const supplyRawRate = token.supplyRate;
-				const borrowRawRate = token.borrowRate;
-				const supplyRawRateNumber = new BigNumber(supplyRawRate);
-				const borrowRawRateNumber = new BigNumber(borrowRawRate);
-				const supplyRateNumber = supplyRawRateNumber.times('2102400').div('1e18');
-				const borrowRateNumber = borrowRawRateNumber.times('2102400').div('1e18');
-				const supplyRate = supplyRateNumber.toString();
-				const borrowRate = borrowRateNumber.toString();
-				if (!(ticker in this.rates.supply)) {
-					Vue.set(this.rates.supply, ticker, {});
-				}
-				if (!(ticker in this.rates.borrow)) {
-					Vue.set(this.rates.borrow, ticker, {});
-				}
-				Vue.set(this.rates.supply[ticker], 'Compound', supplyRate);
-				Vue.set(this.rates.borrow[ticker], 'Compound', borrowRate);
+				Vue.set(this.rates['Compound'], ticker, rate);
+				Vue.set(this.indices['Compound'], ticker, index);
+			}
+			if (data.userBalances.length == 0) {
+				return;
+			}
+			const userBalances = data.userBalances[0].balances;
+			for (const userBalance of userBalances) {
+				const ticker = userBalance.token.symbol.substr(1);
+				const balance = userBalance.balance;
+				Vue.set(this.balances['Compound'], ticker, balance);
 			}
 		},
 		async loadFulcrum() {
@@ -177,8 +195,18 @@ export default {
 					tokens {
 						symbol
 						address
+						index
 						supplyRate
-						borrowRate
+					}
+					userBalances(where: {
+						id: "${this.account.address}"
+					}) {
+						balances {
+							token {
+								symbol
+							}
+							balance
+						}
 					}
 				}`;
 			const opts = {
@@ -193,25 +221,174 @@ export default {
 			for (const token of tokens) {
 				const ticker = token.symbol.substr(1);
 				const address = token.address;
+				const rawRate = token.supplyRate;
+				const index = token.index;
+				const rawRateNumber = new BigNumber(rawRate);
+				const rateNumber = rawRateNumber.div('1e18').div('1e2');
+				const rate = rateNumber.toString();
 				Vue.set(this.tokenAddresses['Fulcrum'], ticker, address);
-				// Set rates
-				const supplyRawRate = token.supplyRate;
-				const borrowRawRate = token.borrowRate;
-				const supplyRawRateNumber = new BigNumber(supplyRawRate);
-				const borrowRawRateNumber = new BigNumber(borrowRawRate);
-				const supplyRateNumber = supplyRawRateNumber.div('1e18').div('1e2');
-				const borrowRateNumber = borrowRawRateNumber.div('1e18').div('1e2');
-				const supplyRate = supplyRateNumber.toString();
-				const borrowRate = borrowRateNumber.toString();
-				if (!(ticker in this.rates.supply)) {
-					Vue.set(this.rates.supply, ticker, {});
-				}
-				if (!(ticker in this.rates.borrow)) {
-					Vue.set(this.rates.borrow, ticker, {});
-				}
-				Vue.set(this.rates.supply[ticker], 'Fulcrum', supplyRate);
-				Vue.set(this.rates.borrow[ticker], 'Fulcrum', borrowRate);
+				Vue.set(this.rates['Fulcrum'], ticker, rate);
+				Vue.set(this.indices['Fulcrum'], ticker, index);
 			}
+			if (data.userBalances.length == 0) {
+				return;
+			}
+			const userBalances = data.userBalances[0].balances;
+			for (const userBalance of userBalances) {
+				const ticker = userBalance.token.symbol.substr(1);
+				const balance = userBalance.balance;
+				Vue.set(this.balances['Fulcrum'], ticker, balance);
+			}
+		},
+		async withdraw() {
+			if (this.inPlatform == 'Compound') {
+				await this.withdrawCompound();
+			}
+			if (this.inPlatform == 'Fulcrum') {
+				await this.withdrawFulcrum();
+			}
+		},
+		async deposit() {
+			if (this.outPlatform == 'Compound') {
+				await this.depositCompound();
+			}
+			if (this.outPlatform == 'Fulcrum') {
+				await this.depositFulcrum();
+			}
+		},
+		async checkAllowance(spender, address, amount) {
+			const uintMax = '115792089237316195423570985008687907853269984665640564039457584007913129639935';
+			const account = this.account.address;
+			const inputToken = new ethers.Contract(address, erc20Abi, signer);
+			const inputTokenAllowance = await inputToken.allowance(account, spender);
+			if (inputTokenAllowance.gte(amount)) {
+				return;
+			}
+			try {
+				this.txStatus = 'mining';
+				const tx = await inputToken.approve(spender, uintMax);
+				const txReceipt = await provider.getTransactionReceipt(tx.hash);
+				if (txReceipt.status == 1) {
+					this.txStatus = 'success';
+				} else {
+					this.txStatus = 'failure';
+				}
+			} catch(e) {
+				this.txStatus = 'rejected';
+			}
+		},
+		async depositCompound() {
+			const assetAddress = addresses[this.asset];
+			const cTokenAddress = this.tokenAddresses['Compound'][this.asset];
+			const cToken = new ethers.Contract(cTokenAddress, compoundTokenAbi, signer);
+			const mintAmount = this.toLongAmount(this.amount, this.asset);
+			await this.checkAllowance(cTokenAddress, assetAddress, mintAmount);
+			try {
+				this.txStatus = 'mining';
+				const tx = await cToken.mint(mintAmount);
+				const txReceipt = await provider.getTransactionReceipt(tx.hash);
+				if (txReceipt.status == 1) {
+					this.txStatus = 'success';
+				} else {
+					this.txStatus = 'failure';
+				}
+			} catch(e) {
+				this.txStatus = 'rejected';
+			}
+		},
+		async depositFulcrum() {
+			const assetAddress = addresses[this.asset];
+			const iTokenAddress = this.tokenAddresses['Fulcrum'][this.asset];
+			const iToken = new ethers.Contract(iTokenAddress, fulcrumTokenAbi, signer);
+			const account = this.account.address;
+			const mintAmount = this.toLongAmount(this.amount, this.asset);
+			await this.checkAllowance(iTokenAddress, assetAddress, mintAmount);
+			try {
+				this.txStatus = 'mining';
+				const tx = await iToken.mint(account, mintAmount);
+				const txReceipt = await provider.getTransactionReceipt(tx.hash);
+				if (txReceipt.status == 1) {
+					this.txStatus = 'success';
+				} else {
+					this.txStatus = 'failure';
+				}
+			} catch(e) {
+				this.txStatus = 'rejected';
+			}
+		},
+		async withdrawCompound() {
+			const assetAddress = addresses[this.asset];
+			const index = this.indices['Compound'][this.asset];
+			const redeemAmount = this.toLongAmount(this.amount, this.asset);
+			const redeemAmountNumber = new BigNumber(redeemAmount);
+			const tokenAmountNumber = redeemAmountNumber.times('1e18').div(index);
+			const tokenAmount = tokenAmountNumber.toFixed(0);
+			const cTokenAddress = this.tokenAddresses['Compound'][this.asset];
+			const cToken = new ethers.Contract(cTokenAddress, compoundTokenAbi, signer);
+			try {
+				this.txStatus = 'mining';
+				const tx = await cToken.redeem(tokenAmount);
+				const txReceipt = await provider.getTransactionReceipt(tx.hash);
+				if (txReceipt.status == 1) {
+					this.txStatus = 'success';
+				} else {
+					this.txStatus = 'failure';
+				}
+			} catch(e) {
+				this.txStatus = 'rejected';
+			}
+		},
+		async withdrawFulcrum() {
+			const account = this.account.address;
+			const assetAddress = addresses[this.asset];
+			const index = this.indices['Fulcrum'][this.asset];
+			const burnAmount = this.toLongAmount(this.amount, this.asset);
+			const burnAmountNumber = new BigNumber(burnAmount);
+			const tokenAmountNumber = burnAmountNumber.times('1e18').div(index);
+			const tokenAmount = tokenAmountNumber.toFixed(0);
+			const iTokenAddress = this.tokenAddresses['Fulcrum'][this.asset];
+			const iToken = new ethers.Contract(iTokenAddress, fulcrumTokenAbi, signer);
+			try {
+				this.txStatus = 'mining';
+				const tx = await iToken.burn(account, tokenAmount);
+				const txReceipt = await provider.getTransactionReceipt(tx.hash);
+				if (txReceipt.status == 1) {
+					this.txStatus = 'success';
+				} else {
+					this.txStatus = 'failure';
+				}
+			} catch(e) {
+				this.txStatus = 'rejected';
+			}
+		},
+		toShortAmount(amount, ticker) {
+			const ten = new BigNumber(10);
+			const tickerDecimals = decimals[ticker];
+			const multiplier = ten.pow(tickerDecimals);
+			const amountNumber = new BigNumber(amount);
+			const shortAmountNumber = amountNumber.div(multiplier);
+			const shortAmount = shortAmountNumber.toString();
+			return shortAmount;
+		},
+		toLongAmount(amount, ticker) {
+			const ten = new BigNumber(10);
+			const tickerDecimals = decimals[ticker];
+			const multiplier = ten.pow(tickerDecimals);
+			const amountNumber = new BigNumber(amount);
+			const longAmountNumber = amountNumber.times(multiplier);
+			const longAmount = longAmountNumber.toFixed(0);
+			return longAmount;
+		},
+		async setMax() {
+			const tokenBalance = this.balances[this.inPlatform][this.asset];
+			const tokenBalanceNumber = new BigNumber(tokenBalance);
+			if (!tokenBalance) {
+				return;
+			}
+			const index = this.indices[this.inPlatform][this.asset];
+			const amountNumber = tokenBalanceNumber.times(index).div('1e18');
+			const amount = this.toShortAmount(amountNumber, this.asset);
+			this.amount = amount;
 		},
 		formatRate(rateString) {
 			const rate = parseFloat(rateString);
@@ -226,22 +403,22 @@ export default {
 			return ['Compound', 'Fulcrum'];
 		},
 		inPlatformRate() {
-			const assetRates = this.rates.supply[this.asset];
-			if (!assetRates) {
+			const platformRates = this.rates[this.inPlatform];
+			if (!platformRates) {
 				return '0';
 			}
-			const rate = assetRates[this.inPlatform];
+			const rate = platformRates[this.asset];
 			if (!rate) {
 				return '0';
 			}
 			return rate;
 		},
 		outPlatformRate() {
-			const assetRates = this.rates.supply[this.asset];
-			if (!assetRates) {
+			const platformRates = this.rates[this.outPlatform];
+			if (!platformRates) {
 				return '0';
 			}
-			const rate = assetRates[this.outPlatform];
+			const rate = platformRates[this.asset];
 			if (!rate) {
 				return '0';
 			}
