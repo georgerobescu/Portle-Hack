@@ -9,16 +9,16 @@
 		<div id="strategy-picker-wrapper">
 			Borrow
 			<span class="input-group">
-				<Picker :value="fundingAsset" :list="assets" :onSelect="fundingAssetSelected" class="inline"/>
+				<Picker :value="lendingAsset" :list="assets" :onSelect="lendingAssetSelected" class="inline"/>
 			</span>
 			to lend
 			<span class="input-group">
-				<Picker :value="lendingAsset" :list="assets" :onSelect="lendingAssetSelected" class="inline"/>
+				<Picker :value="fundingAsset" :list="assets" :onSelect="fundingAssetSelected" class="inline"/>
 			</span>
 		</div>
 		<div id="rate-wrapper">
-			<p>{{ fundingAsset }} borrow rate: {{ formatRate(fundingRate) }}</p>
-			<p>{{ lendingAsset }} supply rate: {{ formatRate(lendingRate) }}</p>
+			<p>{{ lendingAsset }} borrow rate: {{ formatRate(fundingRate) }}</p>
+			<p>{{ fundingAsset }} supply rate: {{ formatRate(lendingRate) }}</p>
 			<p>Net rate: {{ formatRate(netRate) }}</p>
 		</div>
 		<div id="amount-picker-wrapper">
@@ -68,8 +68,8 @@ export default {
 			account: undefined,
 			txStatus: 'none',
 			depositAsset: 'ETH',
-			fundingAsset: 'USDC',
-			lendingAsset: 'DAI',
+			lendingAsset: 'USDC',
+			fundingAsset: 'DAI',
 			amount: '1',
 			rates: {
 				supply: {},
@@ -89,15 +89,6 @@ export default {
 		depositAssetSelected(depositAsset) {
 			this.depositAsset = depositAsset;
 		},
-		fundingAssetSelected(fundingAsset) {
-			this.fundingAsset = fundingAsset;
-			if (fundingAsset == 'USDC') {
-				this.lendingAsset = 'DAI';
-			}
-			if (fundingAsset == 'DAI') {
-				this.lendingAsset = 'USDC';
-			}
-		},
 		lendingAssetSelected(lendingAsset) {
 			this.lendingAsset = lendingAsset;
 			if (lendingAsset == 'USDC') {
@@ -105,6 +96,15 @@ export default {
 			}
 			if (lendingAsset == 'DAI') {
 				this.fundingAsset = 'USDC';
+			}
+		},
+		fundingAssetSelected(fundingAsset) {
+			this.fundingAsset = fundingAsset;
+			if (fundingAsset == 'USDC') {
+				this.lendingAsset = 'DAI';
+			}
+			if (fundingAsset == 'DAI') {
+				this.lendingAsset = 'USDC';
 			}
 		},
 		hideStatus() {
@@ -202,12 +202,12 @@ export default {
 			}
 		},
 		async borrow() {
-			const assetAddress = addresses[this.fundingAsset];
-			const cTokenAddress = this.tokenAddresses['Compound'][this.fundingAsset];
+			const assetAddress = addresses[this.lendingAsset];
+			const cTokenAddress = this.tokenAddresses['Compound'][this.lendingAsset];
 			const cToken = new ethers.Contract(cTokenAddress, compoundTokenAbi, signer);
 			const depositAmountNumber = new BigNumber(this.amount);
-			const borrowAmountNumber = depositAmountNumber.times(prices[this.depositAsset]).div(prices[this.fundingAsset]);
-			const borrowAmount = this.toLongAmount(depositAmountNumber, this.fundingAsset);
+			const borrowAmountNumber = depositAmountNumber.times(prices[this.depositAsset]).div(prices[this.lendingAsset]);
+			const borrowAmount = this.toLongAmount(depositAmountNumber, this.lendingAsset);
 			try {
 				this.txStatus = 'mining';
 				const tx = await cToken.borrow(borrowAmount);
@@ -223,13 +223,13 @@ export default {
 		},
 		async swap() {
 			const depositAmountNumber = new BigNumber(this.amount);
-			const borrowAmountNumber = depositAmountNumber.times(prices[this.depositAsset]).div(prices[this.fundingAsset]);
+			const borrowAmountNumber = depositAmountNumber.times(prices[this.depositAsset]).div(prices[this.lendingAsset]);
 			const minConversionRate = '1';
 			const kyberProxy = new ethers.Contract(kyberProxyAddress, kyberProxyAbi, signer);
 			// Token to token
-			const inputAddress = this.getTokenAddress(this.fundingAsset);
+			const inputAddress = this.getTokenAddress(this.lendingAsset);
 			const inputAmount = this.toLongAmount(borrowAmountNumber, this.accountAsset);
-			const outputAddress = this.getTokenAddress(this.lendingAsset);
+			const outputAddress = this.getTokenAddress(this.fundingAsset);
 			await this.checkAllowance(kyberProxyAddress, inputAddress, inputAmount);
 			try {
 				this.txStatus = 'mining';
@@ -248,8 +248,8 @@ export default {
 			const assetAddress = addresses[this.depositAsset];
 			const cTokenAddress = this.tokenAddresses['Compound'][this.depositAsset];
 			const depositAmountNumber = new BigNumber(this.amount);
-			const lendAmountNumber = depositAmountNumber.times(prices[this.depositAsset]).div(prices[this.lendingAsset]);
-			const lendAmount = this.toLongAmount(lendAmountNumber, this.lendingAsset);
+			const lendAmountNumber = depositAmountNumber.times(prices[this.depositAsset]).div(prices[this.fundingAsset]);
+			const lendAmount = this.toLongAmount(lendAmountNumber, this.fundingAsset);
 			await this.checkAllowance(cTokenAddress, assetAddress, depositAmount);
 			try {
 				this.txStatus = 'mining';
@@ -278,14 +278,14 @@ export default {
 			return ['USDC', 'DAI'];
 		},
 		fundingRate() {
-			const rate = this.rates.borrow[this.fundingAsset];
+			const rate = this.rates.borrow[this.lendingAsset];
 			if (!rate) {
 				return '0';
 			}
 			return rate;
 		},
 		lendingRate() {
-			const rate = this.rates.supply[this.lendingAsset];
+			const rate = this.rates.supply[this.fundingAsset];
 			if (!rate) {
 				return '0';
 			}
