@@ -15,10 +15,6 @@
 			<span class="input-group">
 				<Picker :value="lendingAsset" :list="assets" :onSelect="lendingAssetSelected" class="inline"/>
 			</span>
-			using
-			<span class="input-group">
-				<Picker :value="platform" :list="platforms" :onSelect="platformSelected" class="inline"/>
-			</span>
 		</div>
 		<div id="rate-wrapper">
 			<p>{{ fundingAsset }} borrow rate: {{ formatRate(fundingRate) }}</p>
@@ -74,7 +70,6 @@ export default {
 			depositAsset: 'ETH',
 			fundingAsset: 'USDC',
 			lendingAsset: 'DAI',
-			platform: 'Compound',
 			amount: '1',
 			rates: {
 				supply: {},
@@ -89,7 +84,6 @@ export default {
 			return;
 		}
 		this.loadCompound();
-		this.loadFulcrum();
 	},
 	methods: {
 		depositAssetSelected(depositAsset) {
@@ -112,9 +106,6 @@ export default {
 			if (lendingAsset == 'DAI') {
 				this.fundingAsset = 'USDC';
 			}
-		},
-		platformSelected(platform) {
-			this.platform = platform;
 		},
 		hideStatus() {
 			this.txStatus = 'none';
@@ -162,54 +153,8 @@ export default {
 				const borrowRateNumber = borrowRawRateNumber.times('2102400').div('1e18');
 				const supplyRate = supplyRateNumber.toString();
 				const borrowRate = borrowRateNumber.toString();
-				if (!(ticker in this.rates.supply)) {
-					Vue.set(this.rates.supply, ticker, {});
-				}
-				if (!(ticker in this.rates.borrow)) {
-					Vue.set(this.rates.borrow, ticker, {});
-				}
-				Vue.set(this.rates.supply[ticker], 'Compound', supplyRate);
-				Vue.set(this.rates.borrow[ticker], 'Compound', borrowRate);
-			}
-		},
-		async loadFulcrum() {
-			const url = "https://api.thegraph.com/subgraphs/name/destiner/fulcrum";
-			const query = `
-				query {
-					tokens {
-						symbol
-						supplyRate
-						borrowRate
-					}
-				}`;
-			const opts = {
-				method: "POST",
-				headers: { "Content-Type": "application/json" },
-				body: JSON.stringify({ query })
-			};
-			const response = await fetch(url, opts);
-			const json = await response.json();
-			const data = json.data;
-			const tokens = data.tokens;
-			for (const token of tokens) {
-				const ticker = token.symbol.substr(1);
-				// Set rates
-				const supplyRawRate = token.supplyRate;
-				const borrowRawRate = token.borrowRate;
-				const supplyRawRateNumber = new BigNumber(supplyRawRate);
-				const borrowRawRateNumber = new BigNumber(borrowRawRate);
-				const supplyRateNumber = supplyRawRateNumber.div('1e18').div('1e2');
-				const borrowRateNumber = borrowRawRateNumber.div('1e18').div('1e2');
-				const supplyRate = supplyRateNumber.toString();
-				const borrowRate = borrowRateNumber.toString();
-				if (!(ticker in this.rates.supply)) {
-					Vue.set(this.rates.supply, ticker, {});
-				}
-				if (!(ticker in this.rates.borrow)) {
-					Vue.set(this.rates.borrow, ticker, {});
-				}
-				Vue.set(this.rates.supply[ticker], 'Fulcrum', supplyRate);
-				Vue.set(this.rates.borrow[ticker], 'Fulcrum', borrowRate);
+				Vue.set(this.rates.supply, ticker, supplyRate);
+				Vue.set(this.rates.borrow, ticker, borrowRate);
 			}
 		},
 		formatRate(rateString) {
@@ -224,26 +169,15 @@ export default {
 		assets() {
 			return ['USDC', 'DAI'];
 		},
-		platforms() {
-			return ['Compound', 'Fulcrum'];
-		},
 		fundingRate() {
-			const assetRates = this.rates.borrow[this.fundingAsset];
-			if (!assetRates) {
-				return '0';
-			}
-			const rate = assetRates[this.platform];
+			const rate = this.rates.borrow[this.fundingAsset];
 			if (!rate) {
 				return '0';
 			}
 			return rate;
 		},
 		lendingRate() {
-			const assetRates = this.rates.supply[this.lendingAsset];
-			if (!assetRates) {
-				return '0';
-			}
-			const rate = assetRates[this.platform];
+			const rate = this.rates.supply[this.lendingAsset];
 			if (!rate) {
 				return '0';
 			}
