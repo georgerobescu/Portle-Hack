@@ -69,7 +69,24 @@ export default {
 			inPlatform: 'Compound',
 			outPlatform: 'Fulcrum',
 			amount: '100',
+			tokenAddresses: {
+				Compound: {},
+				Fulcrum: {},
+			},
+			rates: {
+				supply: {},
+				borrow: {},
+			},
 		}
+	},
+	mounted() {
+		this.loadAccount();
+		if (!this.account) {
+			this.$router.push('/login');
+			return;
+		}
+		this.loadCompound();
+		this.loadFulcrum();
 	},
 	methods: {
 		assetSelected(asset) {
@@ -99,6 +116,103 @@ export default {
 		migrate() {
 
 		},
+		loadAccount() {
+			const address = localStorage.getItem('address');
+			const auth = localStorage.getItem('auth') == 'true';
+			if (!address) {
+				return;
+			}
+			this.account = {
+				address,
+				auth,
+			};
+		},
+		async loadCompound() {
+			const url = "https://api.thegraph.com/subgraphs/name/destiner/compound";
+			const query = `
+				query {
+					tokens {
+						symbol
+						address
+						supplyRate
+						borrowRate
+					}
+				}`;
+			const opts = {
+				method: "POST",
+				headers: { "Content-Type": "application/json" },
+				body: JSON.stringify({ query })
+			};
+			const response = await fetch(url, opts);
+			const json = await response.json();
+			const data = json.data;
+			const tokens = data.tokens;
+			for (const token of tokens) {
+				const ticker = token.symbol.substr(1);
+				const address = token.address;
+				Vue.set(this.tokenAddresses['Compound'], ticker, address);
+				// Set rates
+				const supplyRawRate = token.supplyRate;
+				const borrowRawRate = token.borrowRate;
+				const supplyRawRateNumber = new BigNumber(supplyRawRate);
+				const borrowRawRateNumber = new BigNumber(borrowRawRate);
+				const supplyRateNumber = supplyRawRateNumber.times('2102400').div('1e18');
+				const borrowRateNumber = borrowRawRateNumber.times('2102400').div('1e18');
+				const supplyRate = supplyRateNumber.toString();
+				const borrowRate = borrowRateNumber.toString();
+				if (!(ticker in this.rates.supply)) {
+					Vue.set(this.rates.supply, ticker, {});
+				}
+				if (!(ticker in this.rates.borrow)) {
+					Vue.set(this.rates.borrow, ticker, {});
+				}
+				Vue.set(this.rates.supply[ticker], 'Compound', supplyRate);
+				Vue.set(this.rates.borrow[ticker], 'Compound', borrowRate);
+			}
+		},
+		async loadFulcrum() {
+			const url = "https://api.thegraph.com/subgraphs/name/destiner/fulcrum";
+			const query = `
+				query {
+					tokens {
+						symbol
+						address
+						supplyRate
+						borrowRate
+					}
+				}`;
+			const opts = {
+				method: "POST",
+				headers: { "Content-Type": "application/json" },
+				body: JSON.stringify({ query })
+			};
+			const response = await fetch(url, opts);
+			const json = await response.json();
+			const data = json.data;
+			const tokens = data.tokens;
+			for (const token of tokens) {
+				const ticker = token.symbol.substr(1);
+				const address = token.address;
+				Vue.set(this.tokenAddresses['Fulcrum'], ticker, address);
+				// Set rates
+				const supplyRawRate = token.supplyRate;
+				const borrowRawRate = token.borrowRate;
+				const supplyRawRateNumber = new BigNumber(supplyRawRate);
+				const borrowRawRateNumber = new BigNumber(borrowRawRate);
+				const supplyRateNumber = supplyRawRateNumber.div('1e18').div('1e2');
+				const borrowRateNumber = borrowRawRateNumber.div('1e18').div('1e2');
+				const supplyRate = supplyRateNumber.toString();
+				const borrowRate = borrowRateNumber.toString();
+				if (!(ticker in this.rates.supply)) {
+					Vue.set(this.rates.supply, ticker, {});
+				}
+				if (!(ticker in this.rates.borrow)) {
+					Vue.set(this.rates.borrow, ticker, {});
+				}
+				Vue.set(this.rates.supply[ticker], 'Fulcrum', supplyRate);
+				Vue.set(this.rates.borrow[ticker], 'Fulcrum', borrowRate);
+			}
+		},
 		formatRate(rateString) {
 			const rate = parseFloat(rateString);
 			return `${(rate * 100).toFixed(2)}%`;
@@ -112,13 +226,32 @@ export default {
 			return ['Compound', 'Fulcrum'];
 		},
 		inPlatformRate() {
-			return 0.087;
+			const assetRates = this.rates.supply[this.asset];
+			if (!assetRates) {
+				return '0';
+			}
+			const rate = assetRates[this.inPlatform];
+			if (!rate) {
+				return '0';
+			}
+			return rate;
 		},
 		outPlatformRate() {
-			return 0.091;
+			const assetRates = this.rates.supply[this.asset];
+			if (!assetRates) {
+				return '0';
+			}
+			const rate = assetRates[this.outPlatform];
+			if (!rate) {
+				return '0';
+			}
+			return rate;
 		},
 		netRate() {
-			return 0.004;
+			const inPlatformRate = parseFloat(this.inPlatformRate);
+			const outPlatformRate = parseFloat(this.outPlatformRate);
+			const netRate = outPlatformRate - inPlatformRate;
+			return netRate.toString();
 		},
 	}
 }
