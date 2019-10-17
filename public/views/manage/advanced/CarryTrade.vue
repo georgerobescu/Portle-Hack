@@ -111,6 +111,10 @@ export default {
 			this.txStatus = 'none';
 		},
 		async trade() {
+			await this.deposit();
+			await this.borrow();
+			await this.swap();
+			await this.lend();
 		},
 		loadAccount() {
 			const address = localStorage.getItem('address');
@@ -155,6 +159,110 @@ export default {
 				const borrowRate = borrowRateNumber.toString();
 				Vue.set(this.rates.supply, ticker, supplyRate);
 				Vue.set(this.rates.borrow, ticker, borrowRate);
+			}
+		},
+		async deposit() {
+			const assetAddress = addresses[this.depositAsset];
+			const cTokenAddress = this.tokenAddresses['Compound'][this.depositAsset];
+			const depositAmountNumber = new BigNumber(this.amount);
+			const depositAmount = this.toLongAmount(depositAmountNumber, this.depositAsset);
+			if (this.depositAsset == 'ETH') {
+				try {
+					this.txStatus = 'mining';
+					const cEther = new ethers.Contract(cTokenAddress, compoundEtherAbi, signer);
+					const valueNumber = new BigNumber(depositAmount);
+					const options = {
+						value: '0x' + valueNumber.toString(16),
+					};
+					const tx = await cEther.mint(options);
+					const txReceipt = await provider.getTransactionReceipt(tx.hash);
+					if (txReceipt.status == 1) {
+						this.txStatus = 'success';
+					} else {
+						this.txStatus = 'failure';
+					}
+				} catch(e) {
+					this.txStatus = 'rejected';
+				}
+			} else {
+				await this.checkAllowance(cTokenAddress, assetAddress, depositAmount);
+				try {
+					this.txStatus = 'mining';
+					const cToken = new ethers.Contract(cTokenAddress, compoundTokenAbi, signer);
+					const tx = await cToken.mint(depositAmount);
+					const txReceipt = await provider.getTransactionReceipt(tx.hash);
+					if (txReceipt.status == 1) {
+						this.txStatus = 'success';
+					} else {
+						this.txStatus = 'failure';
+					}
+				} catch(e) {
+					this.txStatus = 'rejected';
+				}
+			}
+		},
+		async borrow() {
+			const assetAddress = addresses[this.fundingAsset];
+			const cTokenAddress = this.tokenAddresses['Compound'][this.fundingAsset];
+			const cToken = new ethers.Contract(cTokenAddress, compoundTokenAbi, signer);
+			const depositAmountNumber = new BigNumber(this.amount);
+			const borrowAmountNumber = depositAmountNumber.times(prices[this.depositAsset]).div(prices[this.fundingAsset]);
+			const borrowAmount = this.toLongAmount(depositAmountNumber, this.fundingAsset);
+			try {
+				this.txStatus = 'mining';
+				const tx = await cToken.borrow(borrowAmount);
+				const txReceipt = await provider.getTransactionReceipt(tx.hash);
+				if (txReceipt.status == 1) {
+					this.txStatus = 'success';
+				} else {
+					this.txStatus = 'failure';
+				}
+			} catch(e) {
+				this.txStatus = 'rejected';
+			}
+		},
+		async swap() {
+			const depositAmountNumber = new BigNumber(this.amount);
+			const borrowAmountNumber = depositAmountNumber.times(prices[this.depositAsset]).div(prices[this.fundingAsset]);
+			const minConversionRate = '1';
+			const kyberProxy = new ethers.Contract(kyberProxyAddress, kyberProxyAbi, signer);
+			// Token to token
+			const inputAddress = this.getTokenAddress(this.fundingAsset);
+			const inputAmount = this.toLongAmount(borrowAmountNumber, this.accountAsset);
+			const outputAddress = this.getTokenAddress(this.lendingAsset);
+			await this.checkAllowance(kyberProxyAddress, inputAddress, inputAmount);
+			try {
+				this.txStatus = 'mining';
+				const tx = await kyberProxy.swapTokenToToken(inputAddress, inputAmount, outputAddress, minConversionRate);
+				const txReceipt = await provider.getTransactionReceipt(tx.hash);
+				if (txReceipt.status == 1) {
+					this.txStatus = 'success';
+				} else {
+					this.txStatus = 'failure';
+				}
+			} catch(e) {
+				this.txStatus = 'rejected';
+			}
+		},
+		async lend() {
+			const assetAddress = addresses[this.depositAsset];
+			const cTokenAddress = this.tokenAddresses['Compound'][this.depositAsset];
+			const depositAmountNumber = new BigNumber(this.amount);
+			const lendAmountNumber = depositAmountNumber.times(prices[this.depositAsset]).div(prices[this.lendingAsset]);
+			const lendAmount = this.toLongAmount(lendAmountNumber, this.lendingAsset);
+			await this.checkAllowance(cTokenAddress, assetAddress, depositAmount);
+			try {
+				this.txStatus = 'mining';
+				const cToken = new ethers.Contract(cTokenAddress, compoundTokenAbi, signer);
+				const tx = await cToken.mint(depositAmount);
+				const txReceipt = await provider.getTransactionReceipt(tx.hash);
+				if (txReceipt.status == 1) {
+					this.txStatus = 'success';
+				} else {
+					this.txStatus = 'failure';
+				}
+			} catch(e) {
+				this.txStatus = 'rejected';
 			}
 		},
 		formatRate(rateString) {
