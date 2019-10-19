@@ -52,9 +52,12 @@ import decimals from '../../data/decimals.json';
 import addresses from '../../data/addresses.json';
 
 import erc20Abi from '../../data/abi/erc20.json';
+import comptrollerAbi from '../../data/abi/comptroller.json';
 import compoundTokenAbi from '../../data/abi/compoundToken.json';
 import fulcrumTokenAbi from '../../data/abi/fulcrumToken.json';
 import bzxAbi from '../../data/abi/bzx.json';
+
+const comptrollerAddress = '0x3d9819210A31b4961b30EF54bE2aeD79B9c9Cd3B';
 
 const provider = new ethers.providers.Web3Provider(window.ethereum);
 const signer = provider.getSigner();
@@ -151,6 +154,8 @@ export default {
 			const cTokenAddress = this.tokenAddresses['Compound'][this.assetTicker];
 			const cToken = new ethers.Contract(cTokenAddress, compoundTokenAbi, signer);
 			const borrowAmount = this.toLongAmount(this.assetAmount, this.assetTicker);
+			await this.checkAllowance(cTokenAddress, assetAddress, borrowAmount);
+			await this.enableBorrowCompound(cTokenAddress);
 			try {
 				this.txStatus = 'mining';
 				const tx = await cToken.borrow(borrowAmount);
@@ -246,6 +251,27 @@ export default {
 		},
 		async hideStatus() {
 			this.txStatus = 'none';
+		},
+		async enableBorrowCompound(cTokenAddress) {
+			const account = this.account.address;
+			const markets = [ cTokenAddress ];
+			const comptroller = new ethers.Contract(comptrollerAddress, comptrollerAbi, signer);
+			const isMember = await comptroller.checkMembership(account, cTokenAddress);
+			if (isMember) {
+				return;
+			}
+			try {
+				this.txStatus = 'mining';
+				const tx = await comptroller.enterMarkets(markets);
+				const txReceipt = await provider.getTransactionReceipt(tx.hash);
+				if (txReceipt.status == 1) {
+					this.txStatus = 'success';
+				} else {
+					this.txStatus = 'failure';
+				}
+			} catch(e) {
+				this.txStatus = 'rejected';
+			}
 		},
 		async checkAllowance(spender, address, amount) {
 			const uintMax = '115792089237316195423570985008687907853269984665640564039457584007913129639935';
