@@ -245,7 +245,6 @@ export default {
 					this.txStatus = 'failure';
 				}
 			} catch(e) {
-				console.log(e);
 				this.txStatus = 'rejected';
 			}
 		},
