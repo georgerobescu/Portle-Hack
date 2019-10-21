@@ -92,7 +92,7 @@ export default {
 				const balance = investment.shares;
 				this.balance = balance;
 				// Save price
-				const ethPrice = prices['ETH'];
+				const ethPrice = this.ethPrice;
 				const priceInEthRaw = investment.fund.sharePrice;
 				const priceInEthRawNumber = new BigNumber(priceInEthRaw);
 				const priceInEthNumber = priceInEthRawNumber.div('1e18');
