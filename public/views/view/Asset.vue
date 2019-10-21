@@ -14,14 +14,15 @@
 <script>
 import BigNumber from 'bignumber.js';
 
-import prices from '../../data/prices.json';
 import tokens from '../../data/tokens.json';
 import decimals from '../../data/decimals.json';
+import currencyIds from '../../data/currency-ids.json';
 
 export default {
 	data() {
 		return {
 			account: undefined,
+			price: 0,
 			ticker: '',
 			balance: 0,
 		}
@@ -33,6 +34,7 @@ export default {
 			return;
 		}
 		this.ticker = this.$route.params.ticker;
+		this.loadPrice();
 		this.loadBalance();
 	},
 	methods: {
@@ -60,6 +62,13 @@ export default {
 				address,
 				auth,
 			};
+		},
+		async loadPrice() {
+			const currencyId = currencyIds[this.ticker];
+			const url = `https://api.coingecko.com/api/v3/simple/price?ids=${currencyId}&vs_currencies=usd`;
+ 			const response = await fetch(url);
+			const prices = await response.json();
+			this.price = prices[currencyId].usd;
 		},
 		async loadBalance() {
 			const url = `https://api.ethplorer.io/getAddressInfo/${this.account.address}?apiKey=freekey`;
@@ -95,7 +104,7 @@ export default {
 			return shortBalance;
 		},
 		getValue(ticker) {
-			const price = this.prices[ticker];
+			const price = this.price;
 			const priceNumber = new BigNumber(price);
 			const balance = this.getBalance(ticker);
 			const value = priceNumber.times(balance);
@@ -118,13 +127,10 @@ export default {
 				name: this.tokens[ticker],
 				ticker,
 				balance: this.getBalance(ticker),
-				price: prices[ticker],
+				price: this.price,
 				value: this.getValue(ticker),
 			};
 			return asset;
-		},
-		prices() {
-			return prices;
 		},
 		tokens() {
 			return tokens;
