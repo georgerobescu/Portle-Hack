@@ -33,7 +33,7 @@ export default {
 			return;
 		}
 		this.name = this.$route.params.name;
-		this.loanFund();
+		this.loadFund();
 	},
 	methods: {
 		openFund(action) {
@@ -55,7 +55,7 @@ export default {
 				auth,
 			};
 		},
-		async loanFund() {
+		async loadFund() {
 			const url = "https://api.thegraph.com/subgraphs/name/melonproject/melon";
 			const query = `
 				query {
