@@ -13,11 +13,12 @@
 </template>
 
 <script>
+import Vue from 'vue';
 import BigNumber from 'bignumber.js';
 
-import prices from '../../data/prices.json';
 import tokens from '../../data/tokens.json';
 import decimals from '../../data/decimals.json';
+import currencyIds from '../../data/currency-ids.json';
 
 export default {
 	data() {
@@ -27,6 +28,7 @@ export default {
 			ticker: '',
 			balance: 0,
 			rate: 0,
+			prices: {},
 		}
 	},
 	mounted() {
@@ -37,6 +39,7 @@ export default {
 		}
 		this.platform = this.$route.params.platform;
 		this.ticker = this.$route.params.ticker;
+		this.loadPrices();
 		this.loadDeposit();
 	},
 	methods: {
@@ -59,6 +62,20 @@ export default {
 				address,
 				auth,
 			};
+		},
+		async loadPrices() {
+			const assets = ['DAI', 'USDC', 'ETH', 'WBTC', 'REP', 'BAT', 'ZRX', 'LINK', 'KNC'];
+			const assetIds = assets.map((asset) => currencyIds[asset]);
+			const assetIdString = assetIds.join('%2C');
+			const url = `https://api.coingecko.com/api/v3/simple/price?ids=${assetIdString}&vs_currencies=usd`;
+ 			const response = await fetch(url);
+			const prices = await response.json();
+			for (let i = 0; i < assets.length; i++) {
+				const ticker = assets[i];
+				const id = assetIds[i];
+				const price = prices[id].usd;
+				Vue.set(this.prices, ticker, price);
+			}
 		},
 		loadDeposit() {
 			if (this.platform == 'Compound') {
@@ -203,18 +220,19 @@ export default {
 			const ticker = this.ticker;
 			const platform = this.platform;
 			const rate = this.rate;
+			const price = this.prices[ticker];
+			if (!price) {
+				return;
+			}
 			const asset = {
 				platform,
 				ticker,
 				balance: this.getBalance(ticker),
 				rate,
-				price: prices[ticker],
+				price,
 				value: this.getValue(ticker),
 			};
 			return asset;
-		},
-		prices() {
-			return prices;
 		},
 		tokens() {
 			return tokens;
