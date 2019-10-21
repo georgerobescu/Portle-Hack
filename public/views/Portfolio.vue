@@ -48,10 +48,10 @@ import Vue from 'vue';
 import BigNumber from 'bignumber.js';
 import { ethers } from 'ethers';
 
-import prices from '../data/prices.json';
 import tokens from '../data/tokens.json';
 import decimals from '../data/decimals.json';
 import addresses from '../data/addresses.json';
+import currencyIds from '../data/currency-ids.json';
 
 import bzxAbi from '../data/abi/bzx.json';
 
@@ -87,6 +87,7 @@ export default {
 			funds: {
 				'Melon': {},
 			},
+			prices: {},
 		}
 	},
 	mounted() {
@@ -96,6 +97,7 @@ export default {
 			return;
 		}
 		this.loadBalances();
+		this.loadPrices();
 		this.loadCompound();
 		this.loadFulcrum();
 		this.loadTorque();
@@ -163,14 +165,32 @@ export default {
 			for (const tokenData of balance.tokens) {
 				const ticker = tokenData.tokenInfo.symbol;
 				const address = tokenData.tokenInfo.address;
-				if (!(ticker in this.prices)) {
+				const price = tokenData.tokenInfo.price;
+				if (!price) {
 					continue;
 				}
-				const tickerAddress = this.addresses[ticker].toLowerCase();
-				if (address != tickerAddress) {
+				const tickerAddress = this.addresses[ticker];
+				if (!tickerAddress || (address != tickerAddress.toLowerCase())) {
 					continue;
 				}
 				Vue.set(this.balances, ticker, tokenData.balance);
+				if (!(ticker in this.prices)) {
+					Vue.set(this.prices, ticker, price.rate);
+				}
+			}
+		},
+		async loadPrices() {
+			const assets = ['DAI', 'USDC', 'ETH', 'WBTC', 'REP', 'BAT', 'ZRX', 'LINK', 'KNC'];
+			const assetIds = assets.map((asset) => currencyIds[asset]);
+			const assetIdString = assetIds.join('%2C');
+			const url = `https://api.coingecko.com/api/v3/simple/price?ids=${assetIdString}&vs_currencies=usd`;
+ 			const response = await fetch(url);
+			const prices = await response.json();
+			for (let i = 0; i < assets.length; i++) {
+				const ticker = assets[i];
+				const id = assetIds[i];
+				const price = prices[id].usd;
+				Vue.set(this.prices, ticker, price);
 			}
 		},
 		async loadCompound() {
@@ -393,7 +413,7 @@ export default {
 				const name = investment.fund.name;
 				const ethPriceRaw = investment.fund.sharePrice;
 				const ethPriceRawNumber = new BigNumber(ethPriceRaw);
-				const priceRawNumber = ethPriceRawNumber.times(prices['ETH']);
+				const priceRawNumber = ethPriceRawNumber.times(this.prices['ETH']);
 				const priceNumber = priceRawNumber.div('1e18');
 				const price = priceNumber.toString();
 				const roi = 1; // TODO
@@ -407,9 +427,6 @@ export default {
 		}
 	},
 	computed: {
-		prices() {
-			return prices;
-		},
 		tokens() {
 			return tokens;
 		},
