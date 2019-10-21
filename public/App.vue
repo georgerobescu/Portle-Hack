@@ -91,6 +91,11 @@ h1#title {
 	font-size: 1.75em;
 }
 
+h2 {
+	font-size: 1.25em;
+	margin: 1.25em 0 0.25em 0;
+}
+
 button {
 	padding: 0px 1rem;
 	font-size: 0.75em;
