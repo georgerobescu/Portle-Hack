@@ -2,9 +2,12 @@
 	<div id="list">
 		<div class="card" v-for="deposit in deposits" v-if="deposit.value.gt(0)" @click="openDeposit(deposit)">
 			<div class="balance">{{ formatBalance(deposit.balance) }} {{ deposit.ticker }}</div>
-			<div class="platform">{{ deposit.platform }}</div>
-			<div class="details sparse">
+			<div class="platform sparse">
+				<div>{{ deposit.platform }}</div>
 				<div>{{ formatRate(deposit.rate)}}</div>
+			</div>
+			<div class="details sparse">
+				<div>{{ formatMoney(deposit.price) }}</div>
 				<div>{{ formatMoney(deposit.value)}}</div>
 			</div>
 		</div>
@@ -53,13 +56,14 @@ export default {
 		deposits() {
 			const deposits = [];
 			for (const ticker in this.balances) {
-				const price = this.prices[this.ticker];
+				const price = this.prices[ticker];
 				const tokenBalances = this.balances[ticker];
 				for (const platform in tokenBalances) {
 					const deposit = {
 						balance: this.getBalance(ticker, platform),
 						ticker,
 						platform,
+						price,
 						rate: this.rates.supply[ticker][platform],
 						value: this.getValue(ticker, platform),
 					};

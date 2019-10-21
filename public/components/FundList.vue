@@ -4,7 +4,7 @@
 			<div class="balance">{{ formatBalance(fund.balance) }} {{ fund.name }}</div>
 			<div class="platform">{{ fund.platform }}</div>
 			<div class="details sparse">
-				<div>{{  }}</div>
+				<div>{{ formatMoney(fund.price) }}</div>
 				<div>{{ formatMoney(fund.value)}}</div>
 			</div>
 		</div>
@@ -53,11 +53,13 @@ export default {
 			for (const platform in this.balances) {
 				for (const name in this.balances[platform]) {
 					const roi = this.fundData[platform][name].roi;
+					const price = parseFloat(this.fundData[platform][name].price);
 					const fund = {
 						balance: this.getBalance(platform, name),
 						name,
 						platform,
 						roi,
+						price,
 						value: this.getValue(platform, name),
 					};
 					funds.push(fund);

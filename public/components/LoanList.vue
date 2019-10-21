@@ -2,10 +2,13 @@
 	<div id="list">
 		<div class="card" v-for="loan in loans" v-if="loan.value.gt(0)" @click="openLoan(loan)">
 			<div class="balance">{{ formatBalance(loan.balance) }} {{ loan.ticker }}</div>
-			<div class="platform">{{ loan.platform }}</div>
-			<div class="details sparse">
+			<div class="platform sparse">
+				<div>{{ loan.platform }}</div>
 				<div>{{ formatRate(loan.rate) }}</div>
-				<div>{{ formatMoney(loan.value)}}</div>
+			</div>
+			<div class="details sparse">
+				<div>{{ formatMoney(loan.price)}}</div>
+				<div>({{ formatMoney(loan.value)}})</div>
 			</div>
 		</div>
 	</div>
@@ -46,20 +49,21 @@ export default {
 			return `${(rate * 100).toFixed(2)}%`;
 		},
 		formatMoney(price) {
-			return `($${price.toFixed(2)})`;
+			return `$${price.toFixed(2)}`;
 		},
 	},
 	computed: {
 		loans() {
 			const loans = [];
 			for (const ticker in this.balances) {
-				const price = this.prices[this.ticker];
+				const price = this.prices[ticker];
 				const tokenBalances = this.balances[ticker];
 				for (const platform in tokenBalances) {
 					const loan = {
 						balance: this.getBalance(ticker, platform),
 						ticker,
 						platform,
+						price,
 						rate: this.rates.borrow[ticker][platform],
 						value: this.getValue(ticker, platform),
 					};
