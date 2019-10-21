@@ -14,8 +14,6 @@
 <script>
 import BigNumber from 'bignumber.js';
 
-import prices from '../../data/prices.json';
-
 export default {
 	data() {
 		return {
@@ -33,6 +31,7 @@ export default {
 			return;
 		}
 		this.name = this.$route.params.name;
+		this.loadEthPrice();
 		this.loadFund();
 	},
 	methods: {
@@ -54,6 +53,12 @@ export default {
 				address,
 				auth,
 			};
+		},
+		async loadEthPrice() {
+			const url = `https://api.coingecko.com/api/v3/simple/price?ids=ethereum&vs_currencies=usd`;
+ 			const response = await fetch(url);
+			const prices = await response.json();
+			this.ethPrice = prices.ethereum.usd;;
 		},
 		async loadFund() {
 			const url = "https://api.thegraph.com/subgraphs/name/melonproject/melon";
