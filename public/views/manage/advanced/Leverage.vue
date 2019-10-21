@@ -80,9 +80,9 @@ import compoundTokenAbi from '../../../data/abi/compoundToken.json';
 import compoundEtherAbi from '../../../data/abi/compoundEther.json';
 import fulcrumPositionTokenAbi from '../../../data/abi/fulcrumPositionToken.json';
 
-import prices from '../../../data/prices.json';
 import decimals from '../../../data/decimals.json';
 import addresses from '../../../data/addresses.json';
+import currencyIds from '../../../data/currency-ids.json';
 
 const kyberProxyAddress = '0x818e6fecd516ecc3849daf6845e3ec868087b755';
 
@@ -108,6 +108,7 @@ export default {
 				'Compound': {},
 				'Fulcrum': {},
 			},
+			prices: {},
 		}
 	},
 	mounted() {
@@ -116,6 +117,7 @@ export default {
 			this.$router.push('/login');
 			return;
 		}
+		this.loadPrices();
 		this.loadCompound();
 		this.loadFulcrum();
 	},
@@ -201,6 +203,20 @@ export default {
 				auth,
 			};
 		},
+		async loadPrices() {
+			const assets = ['DAI', 'USDC', 'ETH', 'WBTC', 'REP', 'BAT', 'ZRX', 'LINK', 'KNC'];
+			const assetIds = assets.map((asset) => currencyIds[asset]);
+			const assetIdString = assetIds.join('%2C');
+			const url = `https://api.coingecko.com/api/v3/simple/price?ids=${assetIdString}&vs_currencies=usd`;
+ 			const response = await fetch(url);
+			const prices = await response.json();
+			for (let i = 0; i < assets.length; i++) {
+				const ticker = assets[i];
+				const id = assetIds[i];
+				const price = prices[id].usd;
+				Vue.set(this.prices, ticker, price);
+			}
+		},
 		async longDepositCompound() {
 			const assetAddress = addresses[this.targetAsset];
 			const cTokenAddress = this.tokenAddresses['Compound'][this.targetAsset];
@@ -249,7 +265,7 @@ export default {
 			const positionAmountNumber = new BigNumber(this.amount);
 			const depositAmountNumber = positionAmountNumber.div(this.rate);
 			const borrowTargetAmountNumber = positionAmountNumber.minus(depositAmountNumber);
-			const borrowAmountNumber = borrowTargetAmountNumber.times(prices[this.targetAsset]).div(prices[this.accountAsset]);
+			const borrowAmountNumber = borrowTargetAmountNumber.times(this.prices[this.targetAsset]).div(this.prices[this.accountAsset]);
 			const borrowAmount = this.toLongAmount(borrowAmountNumber, this.accountAsset);
 			try {
 				this.txStatus = 'mining';
@@ -269,7 +285,7 @@ export default {
 			const positionAmountNumber = new BigNumber(this.amount);
 			const depositAmountNumber = positionAmountNumber.div(this.rate);
 			const borrowTargetAmountNumber = positionAmountNumber.minus(depositAmountNumber);
-			const borrowAmountNumber = borrowTargetAmountNumber.times(prices[this.targetAsset]).div(prices[this.accountAsset]);
+			const borrowAmountNumber = borrowTargetAmountNumber.times(this.prices[this.targetAsset]).div(this.prices[this.accountAsset]);
 			const minConversionRate = '1';
 			const kyberProxy = new ethers.Contract(kyberProxyAddress, kyberProxyAbi, signer);
 			if (this.targetAsset == 'ETH') {
@@ -355,8 +371,8 @@ export default {
 			const assetAddress = addresses[this.accountAsset];
 			const cTokenAddress = this.tokenAddresses['Compound'][this.accountAsset];
 			const positionAmountNumber = new BigNumber(this.amount);
-			const targetAssetPrice = prices[this.targetAsset];
-			const accountAssetPrice = prices[this.accountAsset];
+			const targetAssetPrice = this.prices[this.targetAsset];
+			const accountAssetPrice = this.prices[this.accountAsset];
 			const depositAmountNumber = positionAmountNumber.times(targetAssetPrice).div(accountAssetPrice).div(this.rate);
 			const depositAmount = this.toLongAmount(depositAmountNumber, this.accountAsset);
 			if (this.accountAsset == 'ETH') {
@@ -463,8 +479,8 @@ export default {
 			const pTokenAddress = this.getFulcrumPositionTokenAddress(this.targetAsset, this.accountAsset, false, this.rate);
 			const pToken = new ethers.Contract(pTokenAddress, fulcrumPositionTokenAbi, signer);
 			const positionAmountNumber = new BigNumber(this.amount);
-			const targetAssetPrice = prices[this.targetAsset];
-			const accountAssetPrice = prices[this.accountAsset];
+			const targetAssetPrice = this.prices[this.targetAsset];
+			const accountAssetPrice = this.prices[this.accountAsset];
 			const depositAmountNumber = positionAmountNumber.times(targetAssetPrice).div(accountAssetPrice).div(this.rate);
 			const depositAmount = this.toLongAmount(depositAmountNumber, this.targetAsset);
 			await this.checkAllowance(pTokenAddress, assetAddress, depositAmount);
