@@ -49,9 +49,9 @@ import compoundTokenAbi from '../../../data/abi/compoundToken.json';
 import compoundEtherAbi from '../../../data/abi/compoundEther.json';
 import fulcrumPositionTokenAbi from '../../../data/abi/fulcrumPositionToken.json';
 
-import prices from '../../../data/prices.json';
 import decimals from '../../../data/decimals.json';
 import addresses from '../../../data/addresses.json';
+import currencyIds from '../../../data/currency-ids.json';
 
 const kyberProxyAddress = '0x818e6fecd516ecc3849daf6845e3ec868087b755';
 
@@ -75,6 +75,7 @@ export default {
 				supply: {},
 				borrow: {},
 			},
+			prices: {},
 		}
 	},
 	mounted() {
@@ -83,6 +84,7 @@ export default {
 			this.$router.push('/login');
 			return;
 		}
+		this.loadPrices();
 		this.loadCompound();
 	},
 	methods: {
@@ -126,6 +128,20 @@ export default {
 				address,
 				auth,
 			};
+		},
+		async loadPrices() {
+			const assets = ['DAI', 'USDC', 'ETH', 'WBTC', 'REP', 'BAT', 'ZRX', 'LINK', 'KNC'];
+			const assetIds = assets.map((asset) => currencyIds[asset]);
+			const assetIdString = assetIds.join('%2C');
+			const url = `https://api.coingecko.com/api/v3/simple/price?ids=${assetIdString}&vs_currencies=usd`;
+ 			const response = await fetch(url);
+			const prices = await response.json();
+			for (let i = 0; i < assets.length; i++) {
+				const ticker = assets[i];
+				const id = assetIds[i];
+				const price = prices[id].usd;
+				Vue.set(this.prices, ticker, price);
+			}
 		},
 		async loadCompound() {
 			const url = "https://api.thegraph.com/subgraphs/name/destiner/compound";
@@ -206,7 +222,7 @@ export default {
 			const cTokenAddress = this.tokenAddresses['Compound'][this.lendingAsset];
 			const cToken = new ethers.Contract(cTokenAddress, compoundTokenAbi, signer);
 			const depositAmountNumber = new BigNumber(this.amount);
-			const borrowAmountNumber = depositAmountNumber.times(prices[this.depositAsset]).div(prices[this.lendingAsset]);
+			const borrowAmountNumber = depositAmountNumber.times(this.prices[this.depositAsset]).div(this.prices[this.lendingAsset]);
 			const borrowAmount = this.toLongAmount(depositAmountNumber, this.lendingAsset);
 			try {
 				this.txStatus = 'mining';
@@ -223,7 +239,7 @@ export default {
 		},
 		async swap() {
 			const depositAmountNumber = new BigNumber(this.amount);
-			const borrowAmountNumber = depositAmountNumber.times(prices[this.depositAsset]).div(prices[this.lendingAsset]);
+			const borrowAmountNumber = depositAmountNumber.times(this.prices[this.depositAsset]).div(this.prices[this.lendingAsset]);
 			const minConversionRate = '1';
 			const kyberProxy = new ethers.Contract(kyberProxyAddress, kyberProxyAbi, signer);
 			// Token to token
@@ -248,7 +264,7 @@ export default {
 			const assetAddress = addresses[this.depositAsset];
 			const cTokenAddress = this.tokenAddresses['Compound'][this.depositAsset];
 			const depositAmountNumber = new BigNumber(this.amount);
-			const lendAmountNumber = depositAmountNumber.times(prices[this.depositAsset]).div(prices[this.fundingAsset]);
+			const lendAmountNumber = depositAmountNumber.times(this.prices[this.depositAsset]).div(this.prices[this.fundingAsset]);
 			const lendAmount = this.toLongAmount(lendAmountNumber, this.fundingAsset);
 			await this.checkAllowance(cTokenAddress, assetAddress, depositAmount);
 			try {
