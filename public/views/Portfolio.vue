@@ -1,6 +1,6 @@
 <template>
 	<div id="view">
-		<TotalBalance :assets="balances" :deposits="depositBalances" :loans="loanBalances" :funds="fundBalances" :fundData="funds"/>
+		<TotalBalance :assets="balances" :deposits="depositBalances" :loans="loanBalances" :funds="fundBalances" :fundData="funds" :prices="prices"/>
 		<div class="header">
 			<h2>Assets</h2>
 			<div v-if="account && account.auth">

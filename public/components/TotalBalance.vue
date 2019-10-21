@@ -7,12 +7,11 @@
 <script>
 import BigNumber from 'bignumber.js';
 
-import prices from '../data/prices.json';
 import tokens from '../data/tokens.json';
 import decimals from '../data/decimals.json';
 
 export default {
-	props: [ 'assets', 'deposits', 'loans', 'funds', 'fundData' ],
+	props: [ 'assets', 'deposits', 'loans', 'funds', 'fundData', 'prices' ],
 	methods: {
 		getShortBalance(balance, ticker) {
 			if (!balance) {
@@ -93,9 +92,6 @@ export default {
 				}
 			}
 			return fund;
-		},
-		prices() {
-			return prices;
 		},
 		tokens() {
 			return tokens;
