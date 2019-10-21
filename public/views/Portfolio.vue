@@ -34,12 +34,14 @@
 		</div>
 		<FundList :balances="fundBalances" :fundData="funds" />
 
-		<div class="header">
-			<h2>Advanced</h2>
+		<div v-if="account && account.auth">
+			<div class="header">
+				<h2>Advanced</h2>
+			</div>
+			<button @click="openLeverage()">Leverage</button>
+			<button @click="openCarryTrade()">Carry trade</button>
+			<button @click="openDepositBridge()">Deposit bridge</button>
 		</div>
-		<button @click="openLeverage()">Leverage</button>
-		<button @click="openCarryTrade()">Carry trade</button>
-		<button @click="openDepositBridge()">Deposit bridge</button>
 	</div>
 </template>
 
