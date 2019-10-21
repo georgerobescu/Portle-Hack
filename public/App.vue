@@ -56,7 +56,7 @@ export default {
 
 body {
 	margin: 0;
-	background: #f8f8f8;
+	background: #f4f8f9;
 	color: #282821;
 	font-size: 20px;
 	font-family: 'Source Sans Pro', -apple-system, system-ui, BlinkMacSystemFont, 'Segoe UI', 'Helvetica Neue', Arial, sans-serif;
@@ -66,6 +66,7 @@ header {
 	padding: 0px 16px 0px 16px;
 	display: flex;
 	justify-content: space-between;
+	background: white;
 	box-shadow: 0px 1px 4px -2px rgba(0,0,0,0.75);
 }
 
