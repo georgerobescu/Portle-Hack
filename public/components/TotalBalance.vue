@@ -1,6 +1,6 @@
 <template>
 	<div>
-		<h1 id="header">Total balance: {{ formatMoney(totalBalance) }}</h1>
+		<h1 id="header">{{ formatMoney(totalBalance) }}</h1>
 	</div>
 </template>
 
