@@ -47,9 +47,9 @@ import { ethers } from 'ethers';
 
 import TxStatus from '../../components/TxStatus.vue';
 
-import prices from '../../data/prices.json';
 import decimals from '../../data/decimals.json';
 import addresses from '../../data/addresses.json';
+import currencyIds from '../../data/currency-ids.json';
 
 import erc20Abi from '../../data/abi/erc20.json';
 import comptrollerAbi from '../../data/abi/comptroller.json';
@@ -85,6 +85,7 @@ export default {
 				'Compound': {},
 				'Torque': {},
 			},
+			prices: {},
 			txStatus: 'none',
 		}
 	},
@@ -95,6 +96,7 @@ export default {
 			return;
 		}
 		this.loadRouterState();
+		this.loadPrices();
 		this.loadCompound();
 		this.loadTorque();
 	},
@@ -147,6 +149,20 @@ export default {
 				if (routerState.action) {
 					this.action = routerState.action;
 				}
+			}
+		},
+		async loadPrices() {
+			const assets = ['DAI', 'USDC', 'ETH', 'WBTC', 'REP', 'BAT', 'ZRX', 'LINK', 'KNC'];
+			const assetIds = assets.map((asset) => currencyIds[asset]);
+			const assetIdString = assetIds.join('%2C');
+			const url = `https://api.coingecko.com/api/v3/simple/price?ids=${assetIdString}&vs_currencies=usd`;
+ 			const response = await fetch(url);
+			const prices = await response.json();
+			for (let i = 0; i < assets.length; i++) {
+				const ticker = assets[i];
+				const id = assetIds[i];
+				const price = prices[id].usd;
+				Vue.set(this.prices, ticker, price);
 			}
 		},
 		async borrowCompound() {
@@ -378,7 +394,7 @@ export default {
 				if (this.platformName == 'Compound') {
 					const netBalance = await this.getCompoundAvailableBorrowAmount();
 					const netBalanceNumber = new BigNumber(netBalance);
-					const tokenPrice = prices[this.assetTicker];
+					const tokenPrice = this.prices[this.assetTicker];
 					const tokenAmount = netBalanceNumber.div(tokenPrice);
 					this.assetAmount = tokenAmount.toString();
 				}
@@ -552,7 +568,7 @@ export default {
 				const assetBalance = assetBalanceNumber.toString();
 				const assetShortBalance = this.toShortAmount(assetBalance, ticker);
 				const assetShortBalanceNumber = new BigNumber(assetShortBalance);
-				const assetPrice = prices[ticker];
+				const assetPrice = this.prices[ticker];
 				const assetValue = assetShortBalanceNumber.times(assetPrice);
 				const collateralFactor = collateralFactorMap[ticker];
 				const assetBorrowPower = assetValue.times(collateralFactor);
@@ -571,7 +587,7 @@ export default {
 				const loanAmount = loanAmountNumber.toString();
 				const loanShortAmount = this.toShortAmount(loanAmount, ticker);
 				const loanShortAmountNumber = new BigNumber(loanShortAmount);
-				const tokenPrice = prices[ticker];
+				const tokenPrice = this.prices[ticker];
 				const loanValue = loanShortAmountNumber.times(tokenPrice);
 				loanTotalValue = loanTotalValue.plus(loanValue);
 			}
