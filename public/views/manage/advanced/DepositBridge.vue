@@ -49,7 +49,6 @@ import compoundTokenAbi from '../../../data/abi/compoundToken.json';
 import compoundEtherAbi from '../../../data/abi/compoundEther.json';
 import fulcrumTokenAbi from '../../../data/abi/fulcrumToken.json';
 
-import prices from '../../../data/prices.json';
 import decimals from '../../../data/decimals.json';
 import addresses from '../../../data/addresses.json';
 
