@@ -4,7 +4,7 @@
 			<div class="balance">{{ formatBalance(loan.balance) }} {{ loan.ticker }}</div>
 			<div class="platform">{{ loan.platform }}</div>
 			<div class="details sparse">
-				<div>{{ formatRate(loan.rate) }} APR</div>
+				<div>{{ formatRate(loan.rate) }}</div>
 				<div>{{ formatMoney(loan.value)}}</div>
 			</div>
 		</div>
