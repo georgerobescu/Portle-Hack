@@ -288,19 +288,6 @@ input.invalid {
 	border-color: #efb22d;
 }
 
-.badge {
-	padding: 0.75rem 1.25rem;
-	font-size: 0.75em;
-}
-
-.badge-info {
-	background: #eedfbd;
-}
-
-.badge-danger {
-	background: #eedfbd;
-}
-
 .hidden {
 	opacity: 0;
 	cursor: inherit;
