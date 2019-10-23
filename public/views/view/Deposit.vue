@@ -4,7 +4,7 @@
 		<div id="label-platform">{{ deposit.platform }}</div>
 		<div id="amount">{{ formatBalance(deposit.balance) }} {{ deposit.ticker }}</div>
 		<div id="rate">{{ formatRate(deposit.rate) }} annual rate</div>
-		<div id="value">{{ formatMoney(deposit.value) }} @ {{ formatMoney(deposit.price) }}/ETH</div>
+		<div id="value">{{ formatMoney(deposit.value) }} @ {{ formatMoney(deposit.price) }}/{{ deposit.ticker }}</div>
 		<div id="action-wrapper" v-if="account && account.auth">
 			<button class="action" @click="openDeposit('deposit')">Supply</button>
 			<button class="action" @click="openDeposit('withdraw')">Withdraw</button>

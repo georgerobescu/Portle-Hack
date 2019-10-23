@@ -3,7 +3,7 @@
 		<div id="label-type">Asset</div>
 		<div id="label-name">{{ asset.name }}</div>
 		<div id="amount">{{ formatBalance(asset.balance) }} {{ asset.ticker }}</div>
-		<div id="value">{{ formatMoney(asset.value) }} @ {{ formatMoney(asset.price) }}/ETH</div>
+		<div id="value">{{ formatMoney(asset.value) }} @ {{ formatMoney(asset.price) }}/{{ asset.ticker }}</div>
 		<div id="action-wrapper" v-if="account && account.auth">
 			<button class="action" @click="openSwap()">Swap</button>
 			<button class="action" @click="openSend()">Send</button>
