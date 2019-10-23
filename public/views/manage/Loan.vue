@@ -27,11 +27,6 @@
 				<span class="label label-ghost label-right inline">{{ assetTicker }}</span>
 			</span>
 		</div>
-		<!-- <div id="badge-wrapper">
-			<span class="badge badge-info">
-				You are depositing {{ assetAmount }} {{ assetTicker }} to {{ platformName }}.
-			</span>
-		</div> -->
 		<div id="button-wrapper">
 			<button class="primary big" @click="borrow()" v-if="action == 'borrow'">Borrow</button>
 			<button class="primary big" @click="repay()" v-if="action == 'repay'">Repay</button>
@@ -621,10 +616,6 @@ export default {
 
 #amount-wrapper {
 	margin-top: 3em;
-}
-
-#badge-wrapper {
-	margin-top: 2em;
 }
 
 #button-wrapper {

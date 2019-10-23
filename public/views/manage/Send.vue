@@ -13,12 +13,6 @@
 				<AssetPicker :ticker="asset" :onSelect="assetSelected" class="inline"/>
 			</span>
 		</div>
-		<!-- <div id="badge-wrapper">
-			<span class="badge badge-info">Sending {{ amount }} {{ asset }} to {{ recipient }}</span>
-			<span class="badge badge-danger">
-				Expected slippage is 1.58%.
-			</span>
-		</div> -->
 		<div id="button-wrapper">
 			<button class="primary big" @click="send()">Send</button>
 		</div>
@@ -177,10 +171,6 @@ export default {
 
 #amount-form-wrapper {
 	margin-top: 1em;
-}
-
-#badge-wrapper {
-	margin-top: 2em;
 }
 
 #button-wrapper {

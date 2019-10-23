@@ -22,12 +22,6 @@
 		<div id="rate-wrapper">
 			Rate: 1 {{ outputAsset }} = {{ formatRate(rate) }} {{ inputAsset }}
 		</div>
-		<!-- <div id="badge-wrapper">
-			<span class="badge badge-info">Selling {{ inputAmount }} {{ inputAsset }} for {{ outputAsset }}</span>
-			<span class="badge badge-danger">
-				Expected slippage is 1.58%.
-			</span>
-		</div> -->
 		<div id="button-wrapper">
 			<button class="primary big" @click="swap()">Swap</button>
 		</div>
@@ -545,10 +539,6 @@ export default {
 }
 
 #rate-wrapper {
-	margin-top: 2em;
-}
-
-#badge-wrapper {
 	margin-top: 2em;
 }
 
