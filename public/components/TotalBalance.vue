@@ -25,14 +25,14 @@ export default {
 			return shortBalance;
 		},
 		getValue(balance, ticker) {
-			const price = this.prices[ticker];
+			const price = this.prices[ticker] || '0';
 			const priceNumber = new BigNumber(price);
 			const shortBalance = this.getShortBalance(balance, ticker);
 			const value = priceNumber.times(shortBalance);
 			return value;
 		},
 		getFundValue(balance, platform, fundName) {
-			const price = this.fundData[platform][fundName].price;
+			const price = this.fundData[platform][fundName].price || '0';
 			const priceNumber = new BigNumber(price);
 			const shortBalance = this.getShortBalance(balance, 'ETH');
 			const value = priceNumber.times(shortBalance);
