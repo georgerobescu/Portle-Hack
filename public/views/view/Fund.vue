@@ -4,7 +4,7 @@
 		<div id="label-name">{{ fund.name }}</div>
 		<div id="amount">{{ formatBalance(fund.balance) }} shares</div>
 		<div id="value">{{ formatMoney(fund.value) }} @ {{ formatMoney(fund.price) }}/share</div>
-		<div id="action-wrapper">
+		<div id="action-wrapper" v-if="account && account.auth">
 			<button class="action" @click="openFund('invest')">Invest</button>
 			<button class="action" @click="openFund('redeem')">Redeem</button>
 		</div>

@@ -5,7 +5,7 @@
 		<div id="amount">{{ formatBalance(loan.balance) }} {{ loan.ticker }}</div>
 		<div id="rate">{{ formatRate(loan.rate) }} annual rate</div>
 		<div id="value">{{ formatMoney(loan.value) }} @ {{ formatMoney(loan.price) }}/ETH</div>
-		<div id="action-wrapper">
+		<div id="action-wrapper" v-if="account && account.auth">
 			<button class="action" @click="openLoan('borrow')">Borrow</button>
 			<button class="action" @click="openLoan('repay')">Repay</button>
 		</div>
