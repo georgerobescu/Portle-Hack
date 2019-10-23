@@ -91,7 +91,8 @@ export default {
 			for (const tokenData of balance.tokens) {
 				const ticker = tokenData.tokenInfo.symbol;
 				if (ticker == this.ticker) {
-					this.balance = tokenData.balance;
+					const balance = tokenData.balance.toString();
+					this.balance = balance;
 				}
 			}
 		},

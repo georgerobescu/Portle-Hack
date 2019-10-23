@@ -175,7 +175,8 @@ export default {
 				if (!tickerAddress || (address != tickerAddress.toLowerCase())) {
 					continue;
 				}
-				Vue.set(this.balances, ticker, tokenData.balance);
+				const balance = tokenData.balance.toString();
+				Vue.set(this.balances, ticker, balance);
 				if (!(ticker in this.prices)) {
 					Vue.set(this.prices, ticker, price.rate);
 				}
