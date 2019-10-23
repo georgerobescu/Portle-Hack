@@ -419,10 +419,8 @@ export default {
 				const priceRawNumber = ethPriceRawNumber.times(this.prices['ETH']);
 				const priceNumber = priceRawNumber.div('1e18');
 				const price = priceNumber.toString();
-				const roi = 1; // TODO
 				const fund = {
 					price,
-					roi,
 				};
 				Vue.set(this.fundBalances['Melon'], name, balance);
 				Vue.set(this.funds['Melon'], name, fund);
