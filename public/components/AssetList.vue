@@ -1,12 +1,15 @@
 <template>
 	<div id="list">
-		<div class="card" v-for="asset in assets" v-if="asset.value.gt(1)" @click="openAsset(asset)">
+		<div class="card" v-for="asset in assets" v-if="isShown(asset)" @click="openAsset(asset)">
 			<div class="balance">{{ formatBalance(asset.balance) }} {{ asset.ticker }}</div>
 			<div class="title">{{ asset.title }}</div>
 			<div class="value sparse">
 				<div>{{ formatMoney(asset.price) }}</div>
 				<div>{{ formatMoney(asset.value)}}</div>
 			</div>
+		</div>
+		<div class="card button" @click="showAll()" v-if="shortMode">
+			Show all assets
 		</div>
 	</div>
 </template>
@@ -16,10 +19,24 @@ import BigNumber from 'bignumber.js';
 
 export default {
 	props: [ 'balances', 'prices', 'tokens', 'decimals' ],
+	data() {
+		return {
+			shortMode: true,
+		}
+	},
 	methods: {
 		openAsset(asset) {
 			const path = `/asset/${asset.ticker}`;
 			this.$router.push(path);
+		},
+		showAll() {
+			this.shortMode = false;
+		},
+		isShown(asset) {
+			if (!this.shortMode) {
+				return true;
+			}
+			return asset.value.gt(1);
 		},
 		getBalance(ticker) {
 			const balance = this.balances[ticker];
@@ -47,7 +64,7 @@ export default {
 	computed: {
 		assets() {
 			const assets = [];
-			for (const ticker in this.tokens) {
+			for (const ticker in this.balances) {
 				const asset = {
 					ticker,
 					title: this.tokens[ticker],
@@ -89,6 +106,12 @@ export default {
 
 .card:hover {
 	box-shadow: rgba(0, 0, 0, 0.2) 0px 2px 4px;
+}
+
+.card.button {
+	display: flex;
+	align-items: center;
+	justify-content: center;
 }
 
 .balance {
