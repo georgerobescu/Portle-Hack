@@ -168,22 +168,21 @@ export default {
 				const ticker = tokenData.tokenInfo.symbol;
 				const address = tokenData.tokenInfo.address;
 				const price = tokenData.tokenInfo.price;
-				if (!price) {
-					continue;
-				}
 				const tickerAddress = this.addresses[ticker];
 				if (!tickerAddress || (address != tickerAddress.toLowerCase())) {
 					continue;
 				}
 				const balance = tokenData.balance.toString();
-				Vue.set(this.balances, ticker, balance);
+				if (!(ticker in this.balances)) {
+					Vue.set(this.balances, ticker, balance);
+				}
 				if (!(ticker in this.prices)) {
 					Vue.set(this.prices, ticker, price.rate);
 				}
 			}
 		},
 		async loadPrices() {
-			const assets = ['DAI', 'USDC', 'ETH', 'WBTC', 'REP', 'BAT', 'ZRX', 'LINK', 'KNC'];
+			const assets = ['DAI', 'USDC', 'ETH', 'WBTC', 'REP', 'BAT', 'ZRX', 'LINK', 'KNC', 'sETH'];
 			const assetIds = assets.map((asset) => currencyIds[asset]);
 			const assetIdString = assetIds.join('%2C');
 			const url = `https://api.coingecko.com/api/v3/simple/price?ids=${assetIdString}&vs_currencies=usd`;

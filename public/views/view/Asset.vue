@@ -93,6 +93,7 @@ export default {
 				if (ticker == this.ticker) {
 					const balance = tokenData.balance.toString();
 					this.balance = balance;
+					break;
 				}
 			}
 		},
