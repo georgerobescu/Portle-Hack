@@ -184,7 +184,12 @@ export default {
 				if (this.ticker != ticker) {
 					continue;
 				}
-				const loanAmount = loan.loanTokenAmountFilled.toString();
+				const loanTokenAmountFilled = loan.loanTokenAmountFilled;
+				const interestDepositRemaining = loan.interestDepositRemaining;
+				const loanTokenAmountFilledNumber = new BigNumber(loanTokenAmountFilled.toString());
+				const interestDepositRemainingNumber = new BigNumber(interestDepositRemaining.toString());
+				const loanAmountNumber = loanTokenAmountFilledNumber.minus(interestDepositRemainingNumber);
+				const loanAmount = loanAmountNumber.toString();
 				// Set balances
 				this.balance = loanAmount;
 				// Set rates

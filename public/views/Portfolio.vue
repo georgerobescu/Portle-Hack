@@ -374,7 +374,12 @@ export default {
 					'0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48': 'USDC',
 				};
 				const ticker = tickers[loan.loanTokenAddress];
-				const loanAmount = loan.loanTokenAmountFilled.toString();
+				const loanTokenAmountFilled = loan.loanTokenAmountFilled;
+				const interestDepositRemaining = loan.interestDepositRemaining;
+				const loanTokenAmountFilledNumber = new BigNumber(loanTokenAmountFilled.toString());
+				const interestDepositRemainingNumber = new BigNumber(interestDepositRemaining.toString());
+				const loanAmountNumber = loanTokenAmountFilledNumber.minus(interestDepositRemainingNumber);
+				const loanAmount = loanAmountNumber.toString();
 				// Set balances
 				if (!(ticker in this.loanBalances)) {
 					Vue.set(this.loanBalances, ticker, {});
