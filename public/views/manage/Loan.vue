@@ -53,6 +53,8 @@ import fulcrumTokenAbi from '../../data/abi/fulcrumToken.json';
 import bzxAbi from '../../data/abi/bzx.json';
 
 const comptrollerAddress = '0x3d9819210A31b4961b30EF54bE2aeD79B9c9Cd3B';
+const bzxAddress = '0x1Cf226E9413AddaF22412A2E182F9C0dE44AF002';
+const bzxVaultAddress = '0x8B3d70d628Ebd30D4A2ea82DB95bA2e906c71633';
 
 const provider = new ethers.providers.Web3Provider(window.ethereum);
 const signer = provider.getSigner();
@@ -192,17 +194,16 @@ export default {
 			const depositAmount = await iToken.getDepositAmountForBorrow(borrowAmount, leverageAmount, initialLoanDuration, collateral);
 			const depositAmountNumber = new BigNumber(depositAmount.toString());
 			const depositAmountWithInterest = depositAmountNumber.times(1.2).toFixed(0);
-			const valueNumber = new BigNumber(depositAmountWithInterest);
-			const ticker = this.assetTicker.toLowerCase();
-			const borrowEns = `${ticker}.tokenloan.eth`;
-			const borrowAddress = await provider.resolveName(borrowEns);
-			const borrowTx = {
-				value: '0x' + valueNumber.toString(16),
-				to: borrowAddress
-			};
+			const collateralTokenAmount = 0;
+			const collateralTokenAddress = '0x0000000000000000000000000000000000000000';
+			const loanData = '0x';
 			try {
 				this.txStatus = 'mining';
-				const tx = await signer.sendTransaction(borrowTx);
+				const valueNumber = new BigNumber(depositAmountWithInterest);
+				const options = {
+					value: '0x' + valueNumber.toString(16),
+				};
+				const tx = await iToken.borrowTokenFromDeposit(borrowAmount, leverageAmount, initialLoanDuration, collateralTokenAmount, account, collateralTokenAddress, loanData, options);
 				const txReceipt = await provider.getTransactionReceipt(tx.hash);
 				if (txReceipt.status == 1) {
 					this.txStatus = 'success';
@@ -237,18 +238,20 @@ export default {
 			}
 		},
 		async repayTorque() {
+			const bzx = new ethers.Contract(bzxAddress, bzxAbi, signer);
 			const account = this.account.address;
 			const assetAddress = addresses[this.assetTicker];
-			const erc20 = new ethers.Contract(assetAddress, erc20Abi, signer);
 			const repayAmount = this.toLongAmount(this.assetAmount, this.assetTicker);
-			const repayEns = `${account}.tokenloan.eth`;
-			const repayAddress = await provider.resolveName(repayEns);
-			if (!repayAddress) {
-				return;
-			}
+			await this.checkAllowance(bzxVaultAddress, assetAddress, repayAmount);
+			const receiver = '0x0000000000000000000000000000000000000000';
 			try {
 				this.txStatus = 'mining';
-				const tx = await erc20.transfer(repayAddress, repayAmount);
+				const loanOrderHashMap = {
+					'DAI': '0x015f872225c3db1d03f910a553b0b5b8fe405cecb8379b9ba972a3a440c583f0',
+					'USDC': '0x41111ecd70fb1feca5dc9368553c6c88d4fa87a3b76083bdea28ddc13fab743f',
+				};
+				const loanOrderHash = loanOrderHashMap[this.assetTicker];
+				const tx = await bzx.paybackLoanAndClose(loanOrderHash, account, account, receiver, repayAmount);
 				const txReceipt = await provider.getTransactionReceipt(tx.hash);
 				if (txReceipt.status == 1) {
 					this.txStatus = 'success';
@@ -473,7 +476,6 @@ export default {
 			return '0';
 		},
 		async getTorqueLoanAmount() {
-			const bzxAddress = '0x1Cf226E9413AddaF22412A2E182F9C0dE44AF002';
 			const bzx = new ethers.Contract(bzxAddress, bzxAbi, provider);
 			const loans = await bzx.getBasicLoansData(this.account.address, 5);
 			for (const loan of loans) {
