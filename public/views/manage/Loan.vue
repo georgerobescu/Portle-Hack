@@ -476,25 +476,54 @@ export default {
 			return '0';
 		},
 		async getTorqueLoanAmount() {
-			const bzx = new ethers.Contract(bzxAddress, bzxAbi, provider);
-			const loans = await bzx.getBasicLoansData(this.account.address, 5);
+			const url = "https://api.thegraph.com/subgraphs/name/destiner/torque";
+			const query = `
+				query {
+					users(where: {
+						id: "${this.account.address}"
+					}) {
+						loans {
+							token {
+								symbol
+							}
+							amount
+							interestRate
+							timestamp
+						}
+					}
+				}`;
+			const opts = {
+				method: "POST",
+				headers: { "Content-Type": "application/json" },
+				body: JSON.stringify({ query })
+			};
+			const response = await fetch(url, opts);
+			const json = await response.json();
+			const data = json.data;
+			if (data.users.length == 0) {
+				return '0';
+			}
+			const loans = data.users[0].loans;
 			for (const loan of loans) {
-				if (loan.loanOrderHash == '0x0000000000000000000000000000000000000000000000000000000000000000') {
-					break;
-				}
-				const tickers = {
-					'0x89d24A6b4CcB1B6fAA2625fE562bDD9a23260359': 'DAI',
-					'0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48': 'USDC',
-				};
-				const ticker = tickers[loan.loanTokenAddress];
-				if (ticker != this.assetTicker) {
+				const ticker = loan.token.symbol.substr(1);
+				if (this.assetTicker != ticker) {
 					continue;
 				}
-				const loanTokenAmountFilled = loan.loanTokenAmountFilled;
-				const interestDepositRemaining = loan.interestDepositRemaining;
-				const loanTokenAmountFilledNumber = new BigNumber(loanTokenAmountFilled.toString());
-				const interestDepositRemainingNumber = new BigNumber(interestDepositRemaining.toString());
-				const loanAmountNumber = loanTokenAmountFilledNumber.minus(interestDepositRemainingNumber);
+				const timestamp = loan.timestamp;
+				const interestRate = loan.interestRate;
+				const loanRawAmount = loan.amount;
+				// Set rates
+				const borrowRawRateNumber = new BigNumber(interestRate);
+				const borrowRateNumber = borrowRawRateNumber.div('1e20');
+				const borrowRate = borrowRateNumber.toString();
+				this.rate = borrowRate;
+				// Set balances
+				const loanRawAmountNumber = new BigNumber(loanRawAmount);
+				const dailyOwedNumber = loanRawAmountNumber.times(borrowRateNumber).div(365.25);
+				const fullTerm = 7884000;
+				const currentTerm = Date.now() / 1000 - timestamp;
+				const daysLeft = (fullTerm - currentTerm) / 60 / 60 / 24;
+				const loanAmountNumber = loanRawAmountNumber.minus(dailyOwedNumber.times(daysLeft));
 				const loanAmount = loanAmountNumber.toString();
 				return loanAmount;
 			}
