@@ -38,9 +38,12 @@
 			<div class="header">
 				<h2>Advanced</h2>
 			</div>
-			<button @click="openLeverage()">Leverage</button>
-			<button @click="openCarryTrade()">Carry trade</button>
-			<button @click="openDepositBridge()">Deposit bridge</button>
+			<div id="advanced-buttons">
+				<button @click="openLeverage()">Leverage</button>
+				<button @click="openCarryTrade()">Carry trade</button>
+				<button @click="openDepositBridge()">Deposit bridge</button>
+				<button @click="openSmartRepay()">Smart repay</button>
+			</div>
 		</div>
 	</div>
 </template>
@@ -134,6 +137,10 @@ export default {
 		},
 		openDepositBridge() {
 			const path = '/deposit-bridge';
+			this.$router.push(path);
+		},
+		openSmartRepay() {
+			const path = '/smart-repay';
 			this.$router.push(path);
 		},
 		loadAccount() {
@@ -472,5 +479,9 @@ export default {
 <style scoped>
 #swap-button {
 	margin-left: 8px;
+}
+
+#advanced-buttons {
+	margin-top: 1em;
 }
 </style>
