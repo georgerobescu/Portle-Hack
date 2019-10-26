@@ -41,6 +41,7 @@ import TxStatus from '../../../components/TxStatus.vue';
 
 import kyberOracleAbi from '../../../data/abi/kyberOracle.json';
 import kyberProxyAbi from '../../../data/abi/kyberProxy.json';
+import compoundTokenAbi from '../../../data/abi/compoundToken.json';
 import addresses from '../../../data/addresses.json';
 import decimals from '../../../data/decimals.json';
 
