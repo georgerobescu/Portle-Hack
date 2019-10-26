@@ -32,6 +32,7 @@
 </template>
 
 <script>
+import Vue from 'vue';
 import BigNumber from 'bignumber.js';
 import { ethers } from 'ethers';
 
@@ -65,6 +66,9 @@ export default {
 			platform: 'Compound',
 			amount: '1',
 			repayAmount: '0',
+			tokenAddresses: {
+				Compound: {},
+			},
 		}
 	},
 	mounted() {
@@ -74,6 +78,7 @@ export default {
 			return;
 		}
 		this.loadKyberPrice();
+		this.loadCompound();
 	},
 	methods: {
 		loanAssetSelected(loanAsset) {
@@ -116,6 +121,37 @@ export default {
 			const outputAmount = await kyberOracle.getOutputAmount(inputAddress, outputAddress, inputAmount);
 			const repayAmount = this.toShortAmount(outputAmount, this.loanAsset);
 			this.repayAmount = (parseFloat(repayAmount) * (1 - slippage)).toFixed(2);
+		},
+		async loadCompound() {
+			const url = "https://api.thegraph.com/subgraphs/name/destiner/compound";
+			const query = `
+				query {
+					tokens {
+						symbol
+						address
+						borrowRate
+						supplyIndex
+					}
+				}`;
+			const opts = {
+				method: "POST",
+				headers: { "Content-Type": "application/json" },
+				body: JSON.stringify({ query })
+			};
+			const response = await fetch(url, opts);
+			const json = await response.json();
+			const data = json.data;
+			const tokens = data.tokens;
+			for (const token of tokens) {
+				const ticker = token.symbol.substr(1);
+				const address = token.address;
+				const rawRate = token.borrowRate;
+				const index = token.supplyIndex;
+				const rawRateNumber = new BigNumber(rawRate);
+				const rateNumber = rawRateNumber.times('2102400').div('1e18');
+				const rate = rateNumber.toString();
+				Vue.set(this.tokenAddresses['Compound'], ticker, address);
+			}
 		},
 		async checkAllowance(spender, address, amount) {
 			const uintMax = '115792089237316195423570985008687907853269984665640564039457584007913129639935';
