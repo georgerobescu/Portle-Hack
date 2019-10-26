@@ -39,6 +39,7 @@ import { ethers } from 'ethers';
 import Picker from '../../../components/Picker.vue';
 import TxStatus from '../../../components/TxStatus.vue';
 
+import erc20Abi from '../../../data/abi/erc20.json';
 import kyberOracleAbi from '../../../data/abi/kyberOracle.json';
 import kyberProxyAbi from '../../../data/abi/kyberProxy.json';
 import compoundTokenAbi from '../../../data/abi/compoundToken.json';
