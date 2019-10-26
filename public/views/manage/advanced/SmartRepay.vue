@@ -43,11 +43,14 @@ import erc20Abi from '../../../data/abi/erc20.json';
 import kyberOracleAbi from '../../../data/abi/kyberOracle.json';
 import kyberProxyAbi from '../../../data/abi/kyberProxy.json';
 import compoundTokenAbi from '../../../data/abi/compoundToken.json';
+import bzxAbi from '../../../data/abi/bzx.json';
 import addresses from '../../../data/addresses.json';
 import decimals from '../../../data/decimals.json';
 
 const kyberOracleAddress = '0xFd9304Db24009694c680885e6aa0166C639727D6';
 const kyberProxyAddress = '0x818e6fecd516ecc3849daf6845e3ec868087b755';
+const bzxAddress = '0x1Cf226E9413AddaF22412A2E182F9C0dE44AF002';
+const bzxVaultAddress = '0x8B3d70d628Ebd30D4A2ea82DB95bA2e906c71633';
 
 const provider = new ethers.providers.Web3Provider(window.ethereum);
 const signer = provider.getSigner();
@@ -102,6 +105,9 @@ export default {
 			await this.sellRepayAsset();
 			if (this.platform == 'Compound') {
 				await this.repayCompound();
+			}
+			if (this.platform == 'Torque') {
+				await this.repayTorque();
 			}
 		},
 		loadAccount() {
@@ -248,6 +254,31 @@ export default {
 				this.txStatus = 'rejected';
 			}
 		},
+		async repayTorque() {
+			const bzx = new ethers.Contract(bzxAddress, bzxAbi, signer);
+			const account = this.account.address;
+			const assetAddress = addresses[this.loanAsset];
+			const repayAmount = this.toLongAmount(this.repayAmount, this.loanAsset);
+			await this.checkAllowance(bzxVaultAddress, assetAddress, repayAmount);
+			try {
+				this.txStatus = 'mining';
+				const loanOrderHashMap = {
+					'DAI': '0x015f872225c3db1d03f910a553b0b5b8fe405cecb8379b9ba972a3a440c583f0',
+					'USDC': '0x41111ecd70fb1feca5dc9368553c6c88d4fa87a3b76083bdea28ddc13fab743f',
+				};
+				const loanOrderHash = loanOrderHashMap[this.loanAsset];
+				const receiver = '0x0000000000000000000000000000000000000000';
+				const tx = await bzx.paybackLoanAndClose(loanOrderHash, account, account, receiver, repayAmount);
+				const txReceipt = await provider.getTransactionReceipt(tx.hash);
+				if (txReceipt.status == 1) {
+					this.txStatus = 'success';
+				} else {
+					this.txStatus = 'failure';
+				}
+			} catch(e) {
+				this.txStatus = 'rejected';
+			}
+		},
 		getTokenAddress(ticker) {
 			if (ticker == 'ETH') {
 				return '0xEeeeeEeeeEeEeeEeEeEeeEEEeeeeEeeeeeeeEEeE';
@@ -281,7 +312,7 @@ export default {
 			return ['ETH', 'WBTC', 'ZRX', 'REP'];
 		},
 		platforms() {
-			return ['Compound'];
+			return ['Compound', 'Torque'];
 		},
 	},
 }
