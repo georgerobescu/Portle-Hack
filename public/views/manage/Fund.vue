@@ -246,7 +246,7 @@ export default {
 }
 
 .fund-selector {
-	width: 120px;
+	width: 140px;
 	margin: 0.5em 1em 0.5em 0;
 	padding: 0.5em 1em;
 	cursor: pointer;
