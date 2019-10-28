@@ -359,12 +359,18 @@ export default {
 			const json = await response.json();
 			const data = json.data;
 			const tokens = data.tokens;
+			// TODO load dynamically
+			const rateMap = {
+				'DAI': 0.095,
+				'USDC': 0.0808,
+			};
 			for (const token of tokens) {
 				const ticker = token.symbol.substr(1);
 				const address = token.address;
 				const index = token.supplyIndex;
+				const rate = rateMap[ticker] || 0.025;
 				Vue.set(this.tokenAddresses['Torque'], ticker, address);
-				Vue.set(this.rates['Torque'], ticker, 0.16); // TODO
+				Vue.set(this.rates['Torque'], ticker, rate);
 				Vue.set(this.indices['Torque'], ticker, index);
 			}
 		},
