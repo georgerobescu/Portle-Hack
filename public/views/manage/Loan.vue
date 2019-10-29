@@ -361,8 +361,8 @@ export default {
 			const tokens = data.tokens;
 			// TODO load dynamically
 			const rateMap = {
-				'DAI': 0.095,
-				'USDC': 0.0808,
+				'DAI': 0.055,
+				'USDC': 0.0468,
 			};
 			for (const token of tokens) {
 				const ticker = token.symbol.substr(1);
